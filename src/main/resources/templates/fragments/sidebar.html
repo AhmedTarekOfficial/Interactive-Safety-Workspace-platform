@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="sidebar" class="sb">
+    <div class="sb-brand">
+        <a th:href="@{/(lang=${lang},theme=${theme})}" class="brand-row">
+            <div class="brand-ico">🛡</div>
+            <div>
+                <div class="brand-name" th:text="${lang=='ar'}?'سيف جارد':'SafeGuard'"></div>
+                <div class="brand-tag"  th:text="${lang=='ar'}?'منصة السلامة المهنية':'Workplace Safety Platform'"></div>
+            </div>
+        </a>
+    </div>
+    <nav class="sb-nav">
+        <div class="nav-sec" th:text="${lang=='ar'}?'القائمة الرئيسية':'Main Menu'"></div>
+        <a th:href="@{/(lang=${lang},theme=${theme})}"
+           class="nav-link" th:classappend="${activePage=='dashboard'}?' active':''">
+            <span class="nav-ico">📊</span>
+            <span th:text="${lang=='ar'}?'لوحة التحكم':'Dashboard'"></span>
+        </a>
+        <a th:href="@{/employees(lang=${lang},theme=${theme})}"
+           class="nav-link" th:classappend="${activePage=='employees'}?' active':''">
+            <span class="nav-ico">👷</span>
+            <span th:text="${lang=='ar'}?'الموظفون':'Employees'"></span>
+        </a>
+        <a th:href="@{/courses(lang=${lang},theme=${theme})}"
+           th:if="${rulePosition == null or !#strings.equalsIgnoreCase(rulePosition, 'Manager')}"
+           class="nav-link" th:classappend="${activePage=='courses'}?' active':''">
+            <span class="nav-ico">📚</span>
+            <span th:text="${lang=='ar'}?'الدورات':'Courses'"></span>
+        </a>
+        <a th:href="@{/games(lang=${lang},theme=${theme})}"
+           class="nav-link" th:classappend="${activePage=='games'}?' active':''">
+            <span class="nav-ico">🎮</span>
+            <span th:text="${lang=='ar'}?'الألعاب':'Games'"></span>
+        </a>
+        <a th:href="@{/reports(lang=${lang},theme=${theme})}"
+           class="nav-link" th:classappend="${activePage=='reports'}?' active':''">
+            <span class="nav-ico">📈</span>
+            <span th:text="${lang=='ar'}?'التقارير':'Reports'"></span>
+        </a>
+
+        <div class="nav-sec" style="margin-top:8px" th:text="${lang=='ar'}?'السلامة':'Safety'"></div>
+        <a th:href="@{/events(lang=${lang},theme=${theme})}"
+           class="nav-link" th:classappend="${activePage=='events'}?' active':''">
+            <span class="nav-ico">🚨</span>
+            <span th:text="${lang=='ar'}?'الفعاليات والتحذيرات':'Events &amp; Warnings'"></span>
+        </a>
+    </nav>
+    <div class="sb-footer">
+        <div class="nav-sec" th:text="${lang=='ar'}?'النظام':'System'"></div>
+        <a th:href="@{/profile(lang=${lang},theme=${theme})}" class="nav-link" th:classappend="${activePage=='profile'}?' active':''">
+            <span class="nav-ico">👤</span>
+            <span th:text="${lang=='ar'}?'ملفي الشخصي':'My Profile'"></span>
+        </a>
+    </div>
+</aside>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Safety Courses</title>
+  <link rel="stylesheet" href="courses.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="brand">
+        <div class="logo">🛡️</div>
+        <h1>Smart Safety</h1>
+      </div>
+      <nav class="main-nav" id="topNav">
+        <div class="nav-inner" role="tablist">
+          <button class="nav-item" data-key="home" aria-selected="false">
+            <span class="icon" aria-hidden="true">
+              <!-- Home SVG -->
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 11.5L12 4l9 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 21h14a1 1 0 0 0 1-1V12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 21V14h6v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="label">Home</span>
+          </button>
+          <button class="nav-item" data-key="training" aria-selected="false">
+            <span class="icon" aria-hidden="true">
+              <!-- Training SVG (graduation cap) -->
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2l9 4-9 4-9-4 9-4z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 10v4a9 9 0 0 0 18 0v-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="label">Training</span>
+          </button>
+          <button class="nav-item active" data-key="courses" aria-selected="true">
+            <span class="icon" aria-hidden="true">
+              <!-- Book SVG -->
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 7a4 4 0 0 1 4-4h10v14a2 2 0 0 1-2 2H7a4 4 0 0 1-4-4V7z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 7v10a2 2 0 0 1-2 2H13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="label">Courses</span>
+          </button>
+          <button class="nav-item" data-key="resources" aria-selected="false">
+            <span class="icon" aria-hidden="true">
+              <!-- Folder SVG -->
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="label">Resources</span>
+          </button>
+          <button class="nav-item" data-key="support" aria-selected="false">
+            <span class="icon" aria-hidden="true">
+              <!-- Chat SVG -->
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="label">Support</span>
+          </button>
+          <div class="nav-indicator" aria-hidden="true"></div>
+        </div>
+      </nav>
+      <div class="search-user">
+        <input class="search" placeholder="Search..." />
+        <div class="avatar"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container page">
+    <section class="page-header">
+      <h2>Safety Courses</h2>
+    </section>
+
+    <section class="controls">
+      <div class="filters">
+        <button class="chip">All Categories ▾</button>
+        <button class="chip">All Levels ▾</button>
+      </div>
+      <div class="searchbar">
+        <input placeholder="Search for a safety course." />
+      </div>
+    </section>
+
+    <section id="carousel" class="carousel" aria-label="Course carousel">
+      <button class="carousel-nav prev" aria-label="Previous course">◀</button>
+      <div class="carousel-track" role="list"></div>
+      <button class="carousel-nav next" aria-label="Next course">▶</button>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">© Smart Safety</div>
+  </footer>
+
+  <script>
+    // Enhanced animated top nav indicator with keyboard support, reduced-motion and persistence
+    (function(){
+      const nav = document.querySelector('.nav-inner');
+      if(!nav) return;
+      const items = Array.from(nav.querySelectorAll('.nav-item'));
+      const indicator = nav.querySelector('.nav-indicator');
+      const storageKey = 'topnav-selected';
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function setActive(item, doFocus){
+        items.forEach(i=>{ i.classList.remove('active'); i.setAttribute('aria-selected','false'); });
+        item.classList.add('active');
+        item.setAttribute('aria-selected','true');
+        if(doFocus) item.focus();
+        animateIndicatorTo(item);
+        try{ localStorage.setItem(storageKey, item.dataset.key); }catch(e){}
+      }
+
+      function animateIndicatorTo(el, skipAnimation){
+        // target the icon element inside the button so the circle sits under the icon
+        const icon = el.querySelector('.icon');
+        const rect = (icon || el).getBoundingClientRect();
+        const navRect = nav.getBoundingClientRect();
+        // circle should be roughly square and a bit larger than the icon
+        const size = Math.max(rect.width, rect.height, 44);
+        const x = rect.left - navRect.left + (rect.width - size)/2;
+        const y = rect.top - navRect.top + (rect.height - size)/2;
+
+        // Apply size immediately for layout
+        indicator.style.width = size + 'px';
+        indicator.style.height = size + 'px';
+
+        if(prefersReduced || !indicator.animate || skipAnimation){
+          // place without animation
+          indicator.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          return;
+        }
+
+        // Use Web Animations API for smoother motion
+        indicator.animate([
+          { transform: indicator.style.transform || 'translate3d(0,0,0)' },
+          { transform: `translate3d(${x}px, ${y}px, 0)` }
+        ], { duration: 380, easing: 'cubic-bezier(.22,.9,.32,1)', fill: 'forwards' });
+      }
+
+      // Initialize from storage or default
+      const saved = (function(){ try{ return localStorage.getItem(storageKey); }catch(e){ return null } })();
+      const start = saved ? items.find(i=>i.dataset.key===saved) : nav.querySelector('.nav-item.active') || items[0];
+      // place indicator immediately on load without animation
+      setTimeout(()=>{
+        setActive(start, false);
+        // ensure the indicator is placed without animating on first paint
+        animateIndicatorTo(start, true);
+      }, 10);
+
+      // Click handlers
+      items.forEach((item, idx)=>{
+        item.addEventListener('click', ()=> setActive(item, false));
+
+        // Keyboard navigation: Left/Right arrows, Home/End, Enter/Space to activate
+        item.addEventListener('keydown', (ev)=>{
+          if(ev.key === 'ArrowRight'){
+            ev.preventDefault(); items[(idx+1)%items.length].focus();
+          }else if(ev.key === 'ArrowLeft'){
+            ev.preventDefault(); items[(idx-1+items.length)%items.length].focus();
+          }else if(ev.key === 'Home'){
+            ev.preventDefault(); items[0].focus();
+          }else if(ev.key === 'End'){
+            ev.preventDefault(); items[items.length-1].focus();
+          }else if(ev.key === 'Enter' || ev.key === ' '){
+            ev.preventDefault(); setActive(item, false);
+          }
+        });
+      });
+
+      // Keep indicator positioned on resize
+      let rID = null;
+      window.addEventListener('resize', ()=>{
+        if(rID) cancelAnimationFrame(rID);
+        rID = requestAnimationFrame(()=>{
+          const nowActive = nav.querySelector('.nav-item.active') || items[0];
+          animateIndicatorTo(nowActive);
+        });
+      });
+    })();
+  </script>
+  <script>
+(function(){
+  const data = [
+    { id: 'fire', title: 'Fire Safety', desc: 'Learn essential fire prevention and response techniques.', progress:0, img:'fire.png', color:'#D93B1F' },
+    { id: 'ppe', title: 'PPE Training', desc: 'Master the proper use of personal protective equipment.', progress:0, img:'ppe.png', color:'#0ea5a0' },
+    { id: 'firstaid', title: 'First Aid Basics', desc: 'Acquire fundamental first aid skills for emergencies.', progress:0, img:'firstaid.png', color:'#3b82f6' },
+    { id: 'chemical', title: 'Chemical Handling', desc: 'Understand safe handling and storage of chemicals.', progress:0, img:'chemical.png', color:'#10b981' },
+    { id: 'emergency', title: 'Emergency Response', desc: 'Prepare for emergency scenarios with effective strategies.', progress:0, img:'emergency.png', color:'#ef4444' },
+    { id: 'hazard', title: 'Hazard Identification', desc: 'Identify and mitigate workplace hazards.', progress:0, img:'hazard.png', color:'#f59e0b' }
+  ];
+
+  const track = document.querySelector('.carousel-track');
+  const prev = document.querySelector('.carousel-nav.prev');
+  const next = document.querySelector('.carousel-nav.next');
+  if(!track) return;
+
+  function getImagePath(filename) {
+    return `images/${filename}`;
+  }
+
+  function render(){
+    track.innerHTML = '';
+    data.forEach(c=>{
+      const item = document.createElement('div');
+      item.className = 'course-card';
+      item.innerHTML = `
+        <article class="card" style="--dominant:${c.color}">
+          <div class="image-container">
+            <img src="${getImagePath(c.img)}" alt="${c.title}" 
+                 style="width:100%;max-height:250px;object-fit:cover;border-radius:12px;display:block;margin:auto;">
+          </div>
+          <div class="card-body">
+            <h3>${c.title}</h3>
+            <p>${c.desc}</p>
+            <div class="progress-row">
+              <label>Progress</label>
+              <div class="progress"><span style="width:${c.progress}%"></span></div>
+              <small>${c.progress}% Complete</small>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="cta primary" style="background:${c.color}">Start Course ▶</button>
+          </div>
+        </article>
+      `;
+      track.appendChild(item);
+    });
+  }
+
+  render();
+  prev.addEventListener('click', ()=> track.scrollBy({left:-300,behavior:'smooth'}));
+  next.addEventListener('click', ()=> track.scrollBy({left:300,behavior:'smooth'}));
+})();
+</script>
+
+</body>
+</html>

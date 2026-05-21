@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="manager-topbar" class="mgr-topbar">
+  <div class="mgr-topbar-left">
+    <button class="mgr-sb-toggle" onclick="document.querySelector('.mgr-sb').classList.toggle('open')" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="mgr-topbar-title">
+      <span class="mgr-title-text" th:text="${lang=='ar'}?'لوحة تحكم المدير':'Manager Control Panel'"></span>
+      <span class="mgr-title-badge" th:text="${lang=='ar'}?'مدير':'MANAGER'"></span>
+    </div>
+  </div>
+
+  <div class="mgr-topbar-right">
+    <!-- Language Switch -->
+    <button class="mgr-ctrl-btn" onclick="toggleLang()" th:title="${lang=='ar'}?'Switch to English':'التبديل للعربية'">
+      <span class="ctrl-icon">🌐</span>
+      <span th:text="${lang=='ar'}?'EN':'AR'"></span>
+    </button>
+
+    <!-- Theme Switch -->
+    <button class="mgr-ctrl-btn theme-toggle-btn" onclick="toggleTheme()">
+      <span class="ctrl-icon" th:text="${theme=='dark'}?'☀':'🌙'"></span>
+      <span th:text="${theme=='dark'}?'Light':'Dark'"></span>
+    </button>
+
+    <!-- Profile -->
+    <div class="mgr-profile-dd" id="mgrProfileDd">
+      <button class="mgr-avatar-btn" onclick="toggleMgrProfile(event)">
+        <span th:text="${profileInitials != null ? profileInitials : 'M'}">M</span>
+      </button>
+      <div class="mgr-dd-panel" id="mgrDdPanel">
+        <div class="mgr-dd-header">
+          <div class="mgr-dd-avatar" th:text="${profileInitials != null ? profileInitials : 'M'}">M</div>
+          <div>
+            <div class="mgr-dd-name" th:text="${lang=='ar'}?'المدير':'Manager'"></div>
+            <div class="mgr-dd-role" th:text="${lang=='ar'}?'مدير النظام':'System Manager'"></div>
+          </div>
+        </div>
+        <div class="mgr-dd-sep"></div>
+        <a class="mgr-dd-item" th:href="@{/profile(lang=${lang},theme=${theme})}">
+          👤 <span th:text="${lang=='ar'}?'ملفي الشخصي':'My Profile'"></span>
+        </a>
+        <div class="mgr-dd-sep"></div>
+        <a class="mgr-dd-item danger" th:href="@{/logout}">
+          🚪 <span th:text="${lang=='ar'}?'تسجيل الخروج':'Logout'"></span>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+function toggleMgrProfile(e) {
+  e.stopPropagation();
+  document.getElementById('mgrDdPanel').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const p = document.getElementById('mgrDdPanel');
+  if (p) p.classList.remove('open');
+});
+</script>
+</body>
+</html>

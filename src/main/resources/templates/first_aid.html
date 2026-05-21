@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="dark">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Smart Safety Training - First Aid</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;900&family=Tajawal:wght@400;500;700;900&family=JetBrains+Mono:wght@700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#8b5cf6", /* Light Purple */
+            "background-light": "#f8f9fa", /* رمادي فاتح محايد */
+            "background-dark": "#111827", /* كحلي غامق (Slate) */
+            "text-light": "#111827",
+            "text-dark": "#f1f5f9",
+            "card-light": "#ffffff",
+            "card-dark": "#1f2937",
+            "muted-light": "#64748b",
+            "muted-dark": "#94a3b8",
+            "border-light": "#e2e8f0",
+            "border-dark": "#334155"
+          },
+          fontFamily: {
+            "display": ["Lexend", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    /* ─── إعدادات الترجمة والاتجاهات (مع حماية الأيقونات) ─── */
+    html[lang="ar"] body,
+    html[lang="ar"] h1,
+    html[lang="ar"] h2,
+    html[lang="ar"] h3,
+    html[lang="ar"] h4,
+    html[lang="ar"] p,
+    html[lang="ar"] span:not(.material-symbols-outlined),
+    html[lang="ar"] a,
+    html[lang="ar"] button,
+    html[lang="ar"] li {
+      font-family: 'Tajawal', sans-serif !important;
+    }
+
+    html[lang="ar"] {
+      direction: rtl;
+    }
+
+    .ar {
+      display: none;
+    }
+
+    html[lang="ar"] .en {
+      display: none;
+    }
+
+    html[lang="ar"] .ar {
+      display: inline-block;
+    }
+
+    html[lang="ar"] .text-left {
+      text-align: right !important;
+    }
+
+    html[lang="ar"] .md\:text-left {
+      text-align: right !important;
+    }
+
+    /* ─── خلفية الفيديو ─── */
+    body {
+      background: transparent !important;
+      min-height: 100vh;
+    }
+
+    #video-bg-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      overflow: hidden;
+      background: #111827;
+    }
+
+    #video-bg-container video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.6s ease-in-out;
+    }
+
+    #light-video {
+      opacity: 0;
+    }
+
+    #dark-video {
+      opacity: 1;
+    }
+
+    html:not(.dark) #light-video {
+      opacity: 1;
+    }
+
+    html:not(.dark) #dark-video {
+      opacity: 0;
+    }
+
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.85);
+      transition: background 0.6s ease;
+    }
+
+    html:not(.dark) .video-overlay {
+      background: rgba(248, 249, 250, 0.7);
+    }
+
+    /* ─── الرادار المضيء (أزرق) ─── */
+    .scan-card {
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      will-change: transform;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .scan-card::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      width: 100%;
+      top: 0;
+      height: 2px;
+      background: #3b82f6;
+      box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.6);
+      animation: scan 3s linear infinite alternate;
+      z-index: 10;
+      pointer-events: none;
+      border-radius: 50%;
+    }
+
+    @keyframes scan {
+      0% {
+        top: 0%;
+        opacity: 0;
+        transform: translateZ(10px);
+      }
+
+      10% {
+        opacity: 1;
+        transform: translateZ(10px);
+      }
+
+      90% {
+        opacity: 1;
+        transform: translateZ(10px);
+      }
+
+      100% {
+        top: 100%;
+        opacity: 0;
+        transform: translateZ(10px);
+      }
+    }
+
+    /* ─── الأيقونات المحفورة 3D ─── */
+    .engraved-icon-box {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      border-radius: 16px;
+      transform: translateZ(30px);
+      z-index: 2;
+      transition: transform 0.3s ease;
+      color: var(--primary);
+      background: rgba(0, 0, 0, 0.05);
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.15), 0 2px 0 rgba(255, 255, 255, 1);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .dark .engraved-icon-box {
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.8), 0 1px 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .scan-card:hover .engraved-icon-box {
+      transform: scale(1.1) translateZ(40px);
+    }
+
+    .engraved-icon-box i {
+      filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.6));
+    }
+
+    /* ─── أدوات التحكم والناف بار ─── */
+    .hud-clock { 
+      font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700; color: #3b82f6; 
+      letter-spacing: 1.5px; padding: 6px 14px; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; 
+      background: rgba(59, 130, 246, 0.08); backdrop-filter: blur(12px); 
+      box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.2); text-shadow: 0 0 8px rgba(59, 130, 246, 0.6); 
+      min-width: 120px; text-align: center; display: flex; align-items: center; justify-content: center; 
+    }
+    html[lang="ar"] .hud-clock { font-family: 'Orbitron', monospace !important; }
+
+    .theme-switch {
+      position: relative; width: 50px; height: 26px; background: rgba(59, 130, 246, 0.1); 
+      border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 30px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(10px);
+    }
+    .theme-switch::after {
+      content: ''; position: absolute; left: 3px; top: 2px; width: 18px; height: 18px; border-radius: 50%;
+      background: #3b82f6; transition: transform 0.4s; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+    html[data-theme="dark"] .theme-switch::after { transform: translateX(24px); background: #fff; }
+
+    .lang-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Orbitron', monospace; font-weight: 700; font-size: 13px; color: #3b82f6; 
+      padding: 6px 14px; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; background: rgba(59, 130, 246, 0.1); 
+      cursor: pointer; transition: 0.3s; text-decoration: none;
+    }
+    .lang-btn:hover { background: #3b82f6; color: #fff; border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); }
+
+    .tc-back {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Orbitron', monospace; font-weight: 700; font-size: 13px; color: #3b82f6; 
+      padding: 6px 14px; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; background: rgba(59, 130, 246, 0.1); 
+      cursor: pointer; transition: 0.3s; text-decoration: none;
+    }
+    .tc-back:hover { background: #3b82f6; color: #fff; border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); }
+    .tc-back i { font-size: 16px; }
+
+    /* ─── الإشعارات ─── */
+    #notification-dropdown {
+      display: none;
+    }
+
+    #notification-toggle:checked~#notification-dropdown {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    html[lang="ar"] #notification-dropdown {
+      right: auto;
+      left: 0;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body class="font-display text-text-light dark:text-text-dark transition-colors duration-300">
+
+  <div id="video-bg-container">
+    <video id="light-video"
+      src="/videos/light-bg.mp4" autoplay
+      loop muted playsinline></video>
+    <video id="dark-video" src="/videos/dark-bg.mp4" autoplay
+      loop muted playsinline></video>
+    <div class="video-overlay"></div>
+  </div>
+
+  <div class="flex flex-col min-h-screen">
+    <header
+      class="sticky top-0 z-50 bg-nav-bg/80 backdrop-blur-md border-b border-border transition-colors duration-300">
+      <nav class="w-full px-6 md:px-10 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full border-2 border-primary shadow-lg overflow-hidden">
+            <img th:src="${userProfilePic != null ? userProfilePic : (userGender == 'Female' ? 'https://avatar.iran.liara.run/public/girl' : 'https://avatar.iran.liara.run/public/boy')}" 
+                 th:attr="onerror=|this.src='https://ui-avatars.com/api/?name=${username}&background=3b82f6&color=fff'|"
+                 class="w-full h-full object-cover" alt="Logo">
+          </div>
+          <h1 class="text-2xl font-bold">
+            <span class="en">Safety Hub</span><span class="ar">مركز السلامة</span>
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="hud-clock" id="live-time">--:--:--</div>
+            <div class="theme-switch" id="themeToggle" title="Theme"></div>
+            <button class="lang-btn" id="langToggle"><span class="en">عربي</span><span class="ar">EN</span></button>
+            <a th:href="@{/index(lang=${lang},theme=${theme})}" class="tc-back">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span class="en">Back to Home</span><span class="ar">العودة للرئيسية</span>
+            </a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 flex-grow">
+      <div class="text-center mb-12">
+        <h2 class="text-4xl md:text-5xl font-bold text-primary flex items-center justify-center gap-3">
+          <i class="fa-solid fa-house-medical"></i>
+          <span class="en">First Aid Station</span><span class="ar">محطة الإسعافات الأولية</span>
+        </h2>
+        <p class="mt-4 text-lg text-muted-light dark:text-muted-dark">
+          <span class="en">Learn how to handle workplace injuries and emergencies.</span>
+          <span class="ar">تعلم كيفية التعامل مع إصابات العمل وحالات الطوارئ.</span>
+        </p>
+      </div>
+
+      <section class="mb-16">
+        <h3 class="text-2xl font-bold mb-6 text-center">
+          <span class="en">Emergency Tools</span><span class="ar">أدوات الطوارئ</span>
+        </h3>
+        <div class="grid md:grid-cols-3 gap-8" style="perspective: 1200px;">
+
+          <div
+            class="scan-card bg-card-light dark:bg-card-dark p-6 rounded-xl shadow-md flex flex-col items-center text-center">
+            <div class="engraved-icon-box"><i class="fa-solid fa-eye"></i></div>
+            <h4 class="text-lg font-bold mb-2" style="transform: translateZ(15px);">
+              <span class="en">Eye Wash Unit</span><span class="ar">وحدة غسيل العين</span>
+            </h4>
+            <p class="text-sm text-muted-light dark:text-muted-dark" style="transform: translateZ(10px);">
+              <span class="en">Quick access to eye wash station for chemical splashes.</span>
+              <span class="ar">وصول سريع لمحطة غسيل العين للرذاذ الكيميائي.</span>
+            </p>
+          </div>
+
+          <div
+            class="scan-card bg-card-light dark:bg-card-dark p-6 rounded-xl shadow-md flex flex-col items-center text-center">
+            <div class="engraved-icon-box"><i class="fa-solid fa-briefcase-medical"></i></div>
+            <h4 class="text-lg font-bold mb-2" style="transform: translateZ(15px);">
+              <span class="en">First Aid Box</span><span class="ar">صندوق الإسعافات</span>
+            </h4>
+            <p class="text-sm text-muted-light dark:text-muted-dark" style="transform: translateZ(10px);">
+              <span class="en">Essential supplies for immediate care of minor injuries.</span>
+              <span class="ar">المستلزمات الأساسية للرعاية الفورية للإصابات الطفيفة.</span>
+            </p>
+          </div>
+
+          <div
+            class="scan-card bg-card-light dark:bg-card-dark p-6 rounded-xl shadow-md flex flex-col items-center text-center">
+            <div class="engraved-icon-box"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h4 class="text-lg font-bold mb-2" style="transform: translateZ(15px);">
+              <span class="en">GHS Pictograms</span><span class="ar">رموز المخاطر</span>
+            </h4>
+            <p class="text-sm text-muted-light dark:text-muted-dark" style="transform: translateZ(10px);">
+              <span class="en">Understand hazard symbols for safe handling of materials.</span>
+              <span class="ar">افهم رموز المخاطر للتعامل الآمن مع المواد.</span>
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="mb-16">
+        <h3 class="text-2xl font-bold mb-6 text-center">
+          <span class="en">Common Injury Procedures</span><span class="ar">إجراءات الإصابات الشائعة</span>
+        </h3>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" style="perspective: 1200px;">
+
+          <div class="scan-card bg-card-light dark:bg-card-dark p-6 rounded-xl shadow-md">
+            <h4 class="font-bold mb-2" style="transform: translateZ(15px);">
+              <span class="en">Minor Cuts</span><span class="ar">الجروح الطفيفة</span>
+            </h4>
+            <p class="text-sm text-muted-light dark:text-muted-dark" style="transform: translateZ(10px);">
+              <span class="en">Clean the wound, apply antiseptic, and cover with a bandage.</span>
+              <span class="ar">نظف الجرح، ضع مطهراً، وقم بتغطيته بضمادة.</span>
+            </p>
+          </div>
+
+          <div class="scan-card bg-card-light dark:bg-card-dark p-6 rounded-xl shadow-md">
+            <h4 class="font-bold mb-2" style="transform: translateZ(15px);">
+              <span class="en">Chemical Burns</span><span class="ar">الحروق الكيميائية</span>
+            </h4>
+            <p class="text-sm text-muted-light dark:text-muted-dark" style="transform: translateZ(10px);">
+              <span class="en">Flush affected area with water for 15-20 minutes, seek medical help.</span>
+              <span class="ar">اغسل المنطقة المصابة بالماء لمدة 15-20 دقيقة واطلب المساعدة.</span>
+            </p>
+          </div>
+
+          <div class="scan-card bg-card-light dark:bg-card-dark p-6 rounded-xl shadow-md">
+            <h4 class="font-bold mb-2" style="transform: translateZ(15px);">
+              <span class="en">Fractures</span><span class="ar">الكسور</span>
+            </h4>
+            <p class="text-sm text-muted-light dark:text-muted-dark" style="transform: translateZ(10px);">
+              <span class="en">Immobilize the injured area, support it, and seek immediate medical attention.</span>
+              <span class="ar">قم بتثبيت المنطقة المصابة ودعمها واطلب العناية الطبية فوراً.</span>
+            </p>
+          </div>
+
+          <div class="scan-card bg-card-light dark:bg-card-dark p-6 rounded-xl shadow-md">
+            <h4 class="font-bold mb-2" style="transform: translateZ(15px);">
+              <span class="en">Blisters</span><span class="ar">البثور</span>
+            </h4>
+            <p class="text-sm text-muted-light dark:text-muted-dark" style="transform: translateZ(10px);">
+              <span class="en">Do not pop the blister, cover it with a bandage, and avoid pressure.</span>
+              <span class="ar">لا تفقع البثرة، غطها بضمادة وتجنب الضغط عليها.</span>
+            </p>
+          </div>
+
+          <div class="scan-card bg-card-light dark:bg-card-dark p-6 rounded-xl shadow-md">
+            <h4 class="font-bold mb-2" style="transform: translateZ(15px);">
+              <span class="en">Sprains/Strains</span><span class="ar">الالتواءات/التمزقات</span>
+            </h4>
+            <p class="text-sm text-muted-light dark:text-muted-dark" style="transform: translateZ(10px);">
+              <span class="en">Rest, ice, compress, and elevate the injured area to reduce swelling.</span>
+              <span class="ar">أرح المنطقة المصابة، ضع ثلجاً، واضغطها وارفعها لتقليل التورم.</span>
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="mb-16 bg-primary/10 p-8 rounded-xl" style="border: 1px solid rgba(59, 130, 246, 0.3);">
+        <h3 class="text-2xl font-bold mb-6 text-center text-primary flex items-center justify-center gap-2">
+          <i class="fa-solid fa-lightbulb"></i>
+          <span class="en">Safety Tips</span><span class="ar">نصائح السلامة</span>
+        </h3>
+        <ul class="space-y-4 text-center md:text-left">
+          <li class="flex items-start md:items-center gap-4">
+            <span class="text-primary text-2xl"><i class="fa-solid fa-check"></i></span>
+            <div>
+              <h4 class="font-bold">
+                <span class="en">Stay calm before acting.</span><span class="ar">ابق هادئاً قبل التصرف.</span>
+              </h4>
+              <p class="text-sm text-muted-light dark:text-muted-dark">
+                <span class="en">Assess the situation and ensure your safety before providing aid.</span>
+                <span class="ar">قيم الموقف وتأكد من سلامتك قبل تقديم المساعدة.</span>
+              </p>
+            </div>
+          </li>
+          <li class="flex items-start md:items-center gap-4">
+            <span class="text-primary text-2xl"><i class="fa-solid fa-check"></i></span>
+            <div>
+              <h4 class="font-bold">
+                <span class="en">Use personal protective equipment.</span><span class="ar">استخدم معدات الوقاية
+                  الشخصية.</span>
+              </h4>
+              <p class="text-sm text-muted-light dark:text-muted-dark">
+                <span class="en">Wear gloves and other necessary gear to prevent contamination.</span>
+                <span class="ar">ارتدِ القفازات والمعدات اللازمة لمنع التلوث.</span>
+              </p>
+            </div>
+          </li>
+          <li class="flex items-start md:items-center gap-4">
+            <span class="text-primary text-2xl"><i class="fa-solid fa-check"></i></span>
+            <div>
+              <h4 class="font-bold">
+                <span class="en">Know your limits.</span><span class="ar">اعرف حدودك.</span>
+              </h4>
+              <p class="text-sm text-muted-light dark:text-muted-dark">
+                <span class="en">Only provide aid within your training and call for professional help if needed.</span>
+                <span class="ar">قدم المساعدة فقط في حدود تدريبك واطلب مساعدة احترافية إذا لزم الأمر.</span>
+              </p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <div class="text-center" style="perspective: 1000px;">
+        <button
+          class="bg-primary text-white font-bold py-4 px-10 rounded-xl text-lg hover:bg-primary/90 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/40 flex items-center justify-center gap-3 mx-auto">
+          <i class="fa-solid fa-truck-medical text-2xl"></i>
+          <span class="en">Start First Aid Simulation</span>
+          <span class="ar">ابدأ محاكاة الإسعافات الأولية</span>
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ─── الساعة والوقت ───
+    function updateClock() {
+      const el = document.getElementById('live-time');
+      if (!el) return;
+      const isAr = document.documentElement.getAttribute('lang') === 'ar';
+      const date = new Date();
+      let hours = date.getHours(); let minutes = date.getMinutes(); let seconds = date.getSeconds();
+      const ampm = hours >= 12 ? (isAr ? 'مساءً' : 'PM') : (isAr ? 'صباحاً' : 'AM');
+      hours = hours % 12; hours = hours ? hours : 12;
+      minutes = minutes < 10 ? '0' + minutes : minutes; seconds = seconds < 10 ? '0' + seconds : seconds;
+      el.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    // ─── الدارك مود ───
+    const html = document.documentElement;
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      html.classList.toggle('dark');
+      const t=html.getAttribute('data-theme')==='dark'?'light':'dark';
+      html.setAttribute('data-theme',t);
+    });
+
+    // ─── تبديل اللغة والاتجاهات ───
+    document.getElementById('langToggle').addEventListener('click', () => {
+      const isAr = html.getAttribute('lang') === 'en';
+      html.setAttribute('lang', isAr ? 'ar' : 'en');
+      html.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+      updateClock();
+    });
+
+    // ─── الـ 3D والرادار (مسمار) ───
+    const cards = document.querySelectorAll('.scan-card');
+
+    cards.forEach(card => {
+      // الطفو لفوق بمسافة 8 بيكسل ويرجع مكانه 0
+      card.floatTween = gsap.fromTo(card,
+        { y: 0 },
+        { y: -8, duration: gsap.utils.random(2, 3), yoyo: true, repeat: -1, ease: "sine.inOut" }
+      );
+
+      card.addEventListener('mousemove', (e) => {
+        card.floatTween.pause();
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+
+        gsap.to(card, {
+          rotationX: -y / 20,
+          rotationY: x / 20,
+          z: 25,
+          scale: 1.02,
+          boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)", // ظل باللون الأزرق 
+          borderColor: "rgba(59, 130, 246, 0.6)",
+          duration: 0.3,
+          ease: "power1.out"
+        });
+      });
+
+      card.addEventListener('mouseleave', () => {
+        gsap.to(card, {
+          rotationX: 0,
+          rotationY: 0,
+          z: 0,
+          scale: 1,
+          boxShadow: "none",
+          borderColor: "rgba(59, 130, 246, 0.2)",
+          duration: 0.5,
+          ease: "power2.out",
+          onComplete: () => {
+            gsap.fromTo(card, { y: 0 }, { y: -8, duration: gsap.utils.random(2, 3), yoyo: true, repeat: -1, ease: "sine.inOut" });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

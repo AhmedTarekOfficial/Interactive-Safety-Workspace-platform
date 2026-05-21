@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:attr="data-theme=${theme ?: 'dark'}, data-lang=${lang ?: 'en'}, dir=${lang == 'ar' ? 'rtl' : 'ltr'}">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${lang=='ar'}?'التقارير — سيف جارد':'Reports — SafeGuard'">Reports</title>
+  <link rel="icon" href="data:,"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Tajawal:wght@300;400;700;900&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <style>
+    :root{--bg:#eef2f6;--surface:rgba(255,255,255,.85);--border:rgba(139,92,246,.3);--text:#0f172a;--text2:#334155;--accent:#8b5cf6;--accent-glow:rgba(139,92,246,.5);--nav-bg:rgba(238,242,246,.95);--overlay:rgba(238,242,246,.4);}
+    [data-theme="dark"]{--bg:#02060d;--surface:rgba(8,18,40,.75);--border:rgba(139,92,246,.4);--text:#f1f5f9;--text2:#94a3b8;--accent:#a78bfa;--accent-glow:rgba(139,92,246,.6);--nav-bg:rgba(2,6,13,.95);--overlay:rgba(2,6,13,.6);}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;transition:background .5s,color .5s;}
+    [data-lang="ar"] *:not(i){font-family:'Tajawal',sans-serif!important;}
+    [data-lang="ar"] body{direction:rtl;}
+    [data-lang="ar"] .en{display:none!important;}
+    [data-lang="en"] .ar{display:none!important;}
+
+    /* VIDEO BG */
+    #video-bg-container{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--bg);}
+    #video-bg-container video{position:absolute;top:50%;left:50%;width:100vw;height:100vh;object-fit:cover;transform:translate(-50%,-50%);transition:opacity .6s;}
+    #light-video{opacity:1;}#dark-video{opacity:0;}
+    [data-theme="dark"] #light-video{opacity:0;}[data-theme="dark"] #dark-video{opacity:1;}
+    .video-overlay{position:absolute;inset:0;background:var(--overlay);transition:background .6s;}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);backdrop-filter:blur(15px);border-bottom:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+    .logo-icon{width:44px;height:44px;background:linear-gradient(135deg,#8b5cf6,#3b82f6);color:#fff;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 18px var(--accent-glow);}
+    .logo-text{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);letter-spacing:2px;}
+    .hud-clock { 
+      font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700; color: var(--accent); 
+      letter-spacing: 1.5px; padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; 
+      background: rgba(139, 92, 246, 0.08); backdrop-filter: blur(12px); 
+      box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.2); text-shadow: 0 0 8px var(--accent-glow); 
+      min-width: 120px; text-align: center; display: flex; align-items: center; justify-content: center; 
+    }
+    [data-lang="ar"] .hud-clock { font-family: 'Orbitron', monospace !important; }
+
+    .theme-switch {
+      position: relative; width: 50px; height: 26px; background: var(--surface); 
+      border: 1px solid var(--border); border-radius: 30px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(10px);
+    }
+    .theme-switch::after {
+      content: ''; position: absolute; left: 3px; top: 2px; width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent); transition: transform 0.4s; box-shadow: 0 0 10px var(--accent-glow);
+    }
+    [data-theme="dark"] .theme-switch::after { transform: translateX(24px); background: #fff; }
+
+    .lang-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Orbitron', monospace; font-weight: 700; font-size: 13px; color: var(--text); 
+      padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); 
+      cursor: pointer; transition: 0.3s; text-decoration: none;
+    }
+    .lang-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+
+    .tc-back {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Orbitron', monospace; font-weight: 700; font-size: 13px; color: var(--text); 
+      padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); 
+      cursor: pointer; transition: 0.3s; text-decoration: none;
+    }
+    .tc-back:hover { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+    .tc-back i { font-size: 16px; }
+
+    /* CENTER CONTENT */
+    .center-wrap{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;}
+
+    .gc-icon{width:110px;height:110px;border-radius:32px;background:linear-gradient(135deg,#8b5cf6,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:52px;margin-bottom:32px;box-shadow:0 0 50px var(--accent-glow),inset 0 3px 10px rgba(255,255,255,.25);position:relative;overflow:hidden;}
+    .gc-icon::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent,rgba(255,255,255,.3),transparent);transform:rotate(45deg);animation:iconShine 3s infinite;}
+    @keyframes iconShine{0%{transform:translateX(-100%) rotate(45deg);}100%{transform:translateX(100%) rotate(45deg);}}
+
+    .gc-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(139,92,246,.12);color:#a78bfa;font-size:11px;font-weight:700;padding:6px 16px;border-radius:99px;letter-spacing:1px;text-transform:uppercase;margin-bottom:24px;border:1px solid rgba(139,92,246,.2);}
+    .cs-dot{width:7px;height:7px;border-radius:50%;background:#a78bfa;animation:blink 1.2s infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+    .gc-title{font-family:'Orbitron',monospace;font-size:clamp(28px,4vw,44px);font-weight:900;color:var(--text);letter-spacing:2px;margin-bottom:16px;text-shadow:0 0 30px var(--accent-glow);}
+    .gc-title span{color:var(--accent);}
+
+    .gc-desc{color:var(--text2);font-size:15px;line-height:1.8;max-width:480px;margin-bottom:40px;}
+
+    .gc-actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+    .btn-primary{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#8b5cf6,#3b82f6);color:#fff;font-size:14px;font-weight:700;padding:14px 30px;border-radius:14px;text-decoration:none;font-family:'Exo 2',sans-serif;letter-spacing:.4px;box-shadow:0 8px 25px rgba(139,92,246,.4);transition:transform .25s,box-shadow .25s;}
+    .btn-primary:hover{transform:translateY(-3px);box-shadow:0 14px 35px rgba(139,92,246,.6);}
+    .btn-outline{display:inline-flex;align-items:center;gap:8px;background:var(--surface);color:var(--text2);font-size:13px;font-weight:600;padding:12px 24px;border-radius:12px;border:1px solid var(--border);text-decoration:none;font-family:'Exo 2',sans-serif;backdrop-filter:blur(10px);transition:all .25s;}
+    .btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+  </style>
+</head>
+<body>
+
+  <div id="video-bg-container">
+    <video id="light-video" src="/videos/light-bg.mp4" autoplay loop muted playsinline></video>
+    <video id="dark-video"  src="/videos/dark-bg.mp4"  autoplay loop muted playsinline></video>
+    <div class="video-overlay"></div>
+  </div>
+
+  <nav>
+    <div class="nav-logo">
+      <div class="logo-icon"><i class="fa-solid fa-chart-line"></i></div>
+      <span class="logo-text en">Reports</span>
+      <span class="logo-text ar">التقارير</span>
+    </div>
+    <div class="nav-controls">
+      <div class="hud-clock" id="live-time">--:--:--</div>
+      <div class="theme-switch" id="themeToggle" title="Theme"></div>
+      <button class="lang-btn" id="langToggle" title="Language"><span class="en">عربي</span><span class="ar">EN</span></button>
+      <a th:href="@{/index(lang=${lang},theme=${theme})}" class="tc-back">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span class="en">Back to Home</span><span class="ar">العودة للرئيسية</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="center-wrap" id="centerWrap">
+    <div class="gc-badge">
+      <span class="cs-dot"></span>
+      <span class="en">COMING SOON</span><span class="ar">قريباً</span>
+    </div>
+
+    <div class="gc-icon">📊</div>
+
+    <h1 class="gc-title">
+      <span class="en">Reports & <span>Analytics</span></span>
+      <span class="ar">التقارير <span>والإحصائيات</span></span>
+    </h1>
+
+    <p class="gc-desc">
+      <span class="en">Advanced data visualization and analytics dashboard. Track employee training progress, safety compliance, and performance metrics in real-time.</span>
+      <span class="ar">لوحة بيانات وتحليلات متقدمة. تتبع تقدم تدريب الموظفين، والامتثال للسلامة، ومقاييس الأداء في الوقت الفعلي.</span>
+    </p>
+
+    <div class="gc-actions">
+      <a th:href="@{/index(lang=${lang},theme=${theme})}" class="btn-primary">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span class="en">Back to Dashboard</span><span class="ar">العودة للوحة التحكم</span>
+      </a>
+      <a th:href="@{/training(lang=${lang},theme=${theme})}" class="btn-outline">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span class="en">Explore Training</span><span class="ar">استكشف التدريب</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // Clock
+    function updateClock(){
+      const el=document.getElementById('live-time');
+      if(!el)return;
+      const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+      const locale = isAr ? 'ar-EG' : 'en-US';
+      el.textContent=new Date().toLocaleTimeString(locale,{timeZone:'Africa/Cairo',hour12:true,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    }
+    updateClock();setInterval(updateClock,1000);
+
+    // Theme & Lang
+    const html=document.documentElement;
+    document.getElementById('themeToggle').addEventListener('click',()=>{
+      const t=html.getAttribute('data-theme')==='dark'?'light':'dark';
+      html.setAttribute('data-theme',t);
+    });
+    document.getElementById('langToggle').addEventListener('click',()=>{
+      const isAr=html.getAttribute('data-lang')==='en';
+      html.setAttribute('data-lang',isAr?'ar':'en');
+      html.setAttribute('dir',isAr?'rtl':'ltr');
+      updateClock(); // Update clock immediately
+    });
+
+    // GSAP entrance
+    const wrap=document.getElementById('centerWrap');
+    gsap.from(wrap.children,{y:40,opacity:0,stagger:.12,duration:.8,ease:'back.out(1.4)',delay:.3});
+
+    // Parallax on mouse
+    window.addEventListener('mousemove',(e)=>{
+      const x=(e.clientX/window.innerWidth-.5)*2;
+      const y=(e.clientY/window.innerHeight-.5)*2;
+      gsap.to(wrap,{x:-x*15,y:-y*10,duration:1.5,ease:'power3.out'});
+    });
+  </script>
+</body>
+</html>

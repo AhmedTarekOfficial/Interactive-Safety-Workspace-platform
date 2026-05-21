@@ -1,0 +1,69 @@
+<!-- Notification Dropdown Component -->
+<div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-background-light dark:bg-background-dark rounded-lg shadow-xl border border-primary/20 dark:border-primary/30 z-50 max-h-96 overflow-y-auto">
+    <div class="p-4 border-b border-primary/20 dark:border-primary/30">
+        <h3 class="text-lg font-bold text-background-dark dark:text-background-light">Notifications</h3>
+    </div>
+    <div class="divide-y divide-primary/10 dark:divide-primary/20">
+        <!-- Notification Items -->
+        <div class="notification-item p-4 hover:bg-primary/10 dark:hover:bg-primary/20 cursor-pointer transition-colors">
+            <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary/20 dark:bg-primary/30 flex items-center justify-center">
+                    <span class="text-primary text-lg">📚</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-background-dark dark:text-background-light">New Course Available</p>
+                    <p class="text-xs text-background-dark/60 dark:text-background-light/60 mt-1">Safety Training Course has been added to your dashboard.</p>
+                    <p class="text-xs text-background-dark/40 dark:text-background-light/40 mt-1">2 hours ago</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notification-item p-4 hover:bg-primary/10 dark:hover:bg-primary/20 cursor-pointer transition-colors">
+            <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500/20 dark:bg-blue-500/30 flex items-center justify-center">
+                    <span class="text-blue-500 text-lg">⚠️</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-background-dark dark:text-background-light">Safety Alert</p>
+                    <p class="text-xs text-background-dark/60 dark:text-background-light/60 mt-1">New safety alert has been posted. Please review immediately.</p>
+                    <p class="text-xs text-background-dark/40 dark:text-background-light/40 mt-1">5 hours ago</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notification-item p-4 hover:bg-primary/10 dark:hover:bg-primary/20 cursor-pointer transition-colors">
+            <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-500/20 dark:bg-green-500/30 flex items-center justify-center">
+                    <span class="text-green-500 text-lg">✅</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-background-dark dark:text-background-light">Training Completed</p>
+                    <p class="text-xs text-background-dark/60 dark:text-background-light/60 mt-1">You have successfully completed the First Aid Training module.</p>
+                    <p class="text-xs text-background-dark/40 dark:text-background-light/40 mt-1">1 day ago</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notification-item p-4 hover:bg-primary/10 dark:hover:bg-primary/20 cursor-pointer transition-colors">
+            <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-500/20 dark:bg-yellow-500/30 flex items-center justify-center">
+                    <span class="text-yellow-500 text-lg">🎯</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-background-dark dark:text-background-light">Achievement Unlocked</p>
+                    <p class="text-xs text-background-dark/60 dark:text-background-light/60 mt-1">Congratulations! You've earned the "Safety First" achievement.</p>
+                    <p class="text-xs text-background-dark/40 dark:text-background-light/40 mt-1">2 days ago</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Empty state (hidden by default, shown when no notifications) -->
+        <div id="no-notifications" class="hidden p-8 text-center">
+            <p class="text-background-dark/60 dark:text-background-light/60">No notifications available.</p>
+        </div>
+    </div>
+    <div class="p-3 border-t border-primary/20 dark:border-primary/30">
+        <a href="/safety_alerts" class="block text-center text-sm text-primary hover:text-primary/80 font-medium">View All Notifications</a>
+    </div>
+</div>
+

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="modals">
+
+<!-- Detail Modal -->
+<div id="detail-modal" class="modal-backdrop hidden">
+    <div class="modal" style="max-width:620px;padding:0">
+        <div class="modal-hdr">
+            <span class="modal-title" th:text="${lang=='ar'}?'تفاصيل الموظف':'Employee Details'"></span>
+            <button class="btn-ico" onclick="Modal.close('detail-modal')">✕</button>
+        </div>
+        <iframe id="detail-frame" style="width:100%;min-height:500px;border:none;border-radius:0 0 20px 20px" title="Employee Detail"></iframe>
+    </div>
+</div>
+
+<!-- Reset Modal -->
+<div id="reset-modal" class="modal-backdrop hidden">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-hdr">
+            <span class="modal-title" th:text="${lang=='ar'}?'إعادة تعيين التقدم':'Reset Progress'"></span>
+            <button class="btn-ico" onclick="Modal.close('reset-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <p style="color:var(--txt2)" th:text="${lang=='ar'}?'إعادة تعيين جميع تقدم:':'Reset all progress for:'"></p>
+            <p id="reset-emp-name" style="font-weight:700;color:var(--red);font-size:15px;margin-top:6px"></p>
+            <p style="font-size:12px;color:var(--muted);margin-top:8px"
+               th:text="${lang=='ar'}?'⚠ لا يمكن التراجع عن هذا الإجراء.':'⚠ This action cannot be undone.'"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="Modal.close('reset-modal')"
+                    th:text="${lang=='ar'}?'إلغاء':'Cancel'"></button>
+            <form id="reset-form" method="post" style="display:inline">
+                <input type="hidden" name="lang"  th:value="${lang}"/>
+                <input type="hidden" name="theme" th:value="${theme}"/>
+                <button type="submit" class="btn btn-danger"
+                        th:text="${lang=='ar'}?'إعادة التعيين':'Reset'"></button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Deadline Modal -->
+<div id="deadline-modal" class="modal-backdrop hidden">
+    <div class="modal" style="max-width:380px">
+        <div class="modal-hdr">
+            <span class="modal-title" th:text="${lang=='ar'}?'تحديث الموعد النهائي':'Update Deadline'"></span>
+            <button class="btn-ico" onclick="Modal.close('deadline-modal')">✕</button>
+        </div>
+        <form id="deadline-form" method="post">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-lbl"
+                           th:text="${lang=='ar'}?'الموعد النهائي الجديد':'New Deadline'"></label>
+                    <input type="date" id="deadline-input" name="deadline" class="form-ctrl" required/>
+                </div>
+                <input type="hidden" name="lang"  th:value="${lang}"/>
+                <input type="hidden" name="theme" th:value="${theme}"/>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="Modal.close('deadline-modal')"
+                        th:text="${lang=='ar'}?'إلغاء':'Cancel'"></button>
+                <button type="submit" class="btn btn-primary"
+                        th:text="${lang=='ar'}?'حفظ':'Save'"></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</div>
+</body>
+</html>

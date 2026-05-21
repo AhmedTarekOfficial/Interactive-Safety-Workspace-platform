@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SafeSpace · Manager Command Center</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* ── Core Variables (Dark default) ── */
+    :root {
+      --bg-deep: #06060f;
+      --bg-space: #0a0b1a;
+      --blue-primary: #3b82f6;
+      --blue-glow: #4f8fff;
+      --blue-dark: #1a3a6e;
+      --blue-accent: #60a5fa;
+      --white-pure: #ffffff;
+      --white-soft: #e8ecf4;
+      --white-muted: #b0b8cc;
+      --glass-bg: rgba(14, 16, 30, 0.75);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-hover: rgba(20, 24, 42, 0.85);
+      --card-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(59,130,246,0.15);
+      --card-shadow-hover: 0 16px 56px rgba(0,0,0,0.6), 0 0 0 2px rgba(59,130,246,0.3), 0 0 60px rgba(59,130,246,0.12);
+      --text-primary: #ffffff;
+      --text-secondary: #c5cddb;
+      --text-muted: #8892a8;
+      --danger: #ef4444;
+      --danger-glow: #f87171;
+      --success: #22c55e;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --transition-smooth: 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --bg-input: rgba(10,12,22,0.7);
+      --border-input: rgba(255,255,255,0.1);
+      --grid-opacity: 0.06;
+      --orb-opacity: 0.35;
+      
+      /* Component Variables */
+      --table-th-bg: rgba(14,16,28,0.4);
+      --table-tr-bg: rgba(18,22,38,0.65);
+      --table-tr-hover: rgba(24,29,48,0.8);
+      --btn-outline-border: rgba(255,255,255,0.25);
+      --btn-outline-hover-bg: rgba(59,130,246,0.08);
+      --btn-update-bg: rgba(59,130,246,0.15);
+      --btn-update-hover: rgba(59,130,246,0.3);
+      --btn-delete-bg: rgba(239,68,68,0.15);
+      --btn-delete-hover: rgba(239,68,68,0.3);
+      --badge-bg: rgba(59,130,246,0.12);
+      --modal-overlay: rgba(0,0,0,0.7);
+      --tab-hover-bg: rgba(255,255,255,0.06);
+    }
+
+    /* Light mode override */
+    body.light-mode {
+      --bg-deep: #f0f4ff;
+      --bg-space: #f8faff;
+      --blue-primary: #2563eb;
+      --blue-glow: #3b82f6;
+      --blue-dark: #1e40af;
+      --blue-accent: #3b82f6;
+      --white-pure: #0b0f1c;
+      --white-soft: #1e293b;
+      --white-muted: #475569;
+      --glass-bg: rgba(255, 255, 255, 0.75);
+      --glass-border: rgba(0, 0, 0, 0.08);
+      --glass-hover: rgba(255,255,255,0.88);
+      --card-shadow: 0 8px 30px rgba(0,0,0,0.08), 0 0 0 1px rgba(59,130,246,0.2);
+      --card-shadow-hover: 0 16px 45px rgba(0,0,0,0.12), 0 0 0 2px rgba(37,99,235,0.35);
+      --text-primary: #0b0f1c;
+      --text-secondary: #1e293b;
+      --text-muted: #4b5563;
+      --bg-input: rgba(255,255,255,0.85);
+      --border-input: rgba(0,0,0,0.12);
+      --grid-opacity: 0.03;
+      --orb-opacity: 0.18;
+      
+      /* Component Variables */
+      --table-th-bg: rgba(240,244,255,0.8);
+      --table-tr-bg: #ffffff;
+      --table-tr-hover: #f8faff;
+      --btn-outline-border: rgba(0,0,0,0.15);
+      --btn-outline-hover-bg: rgba(59,130,246,0.08);
+      --btn-update-bg: rgba(59,130,246,0.1);
+      --btn-update-hover: rgba(59,130,246,0.2);
+      --btn-delete-bg: rgba(239,68,68,0.1);
+      --btn-delete-hover: rgba(239,68,68,0.2);
+      --badge-bg: rgba(59,130,246,0.15);
+      --modal-overlay: rgba(255,255,255,0.5);
+      --tab-hover-bg: rgba(0,0,0,0.04);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      perspective: 1200px;
+      transition: background 0.4s, color 0.4s;
+    }
+
+    /* Starfield */
+    #starfield { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+
+    .grid-floor {
+      position:fixed; bottom:-30%; left:50%; transform:translateX(-50%) rotateX(62deg) scaleY(2.8);
+      width:200vw; height:200vh;
+      background: repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(59,130,246, var(--grid-opacity)) 28px, rgba(59,130,246, var(--grid-opacity)) 30px),
+                  repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(59,130,246, var(--grid-opacity)) 28px, rgba(59,130,246, var(--grid-opacity)) 30px);
+      z-index:0; pointer-events:none;
+      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, transparent 70%);
+      animation: gridPulse 12s infinite;
+    }
+    @keyframes gridPulse { 0%,100%{opacity:0.6;} 50%{opacity:1;} }
+
+    .orb { position:fixed; border-radius:50%; filter:blur(80px); z-index:0; pointer-events:none; opacity:var(--orb-opacity); }
+    .orb-1 { width:350px; height:350px; background:radial-gradient(circle, rgba(59,130,246,0.5) 0%, transparent 70%); top:-8%; left:-5%; animation:orbDrift 20s infinite; }
+    .orb-2 { width:280px; height:280px; background:radial-gradient(circle, rgba(96,165,250,0.4) 0%, transparent 70%); bottom:-10%; right:-6%; animation:orbDrift 22s infinite; animation-delay:-7s; }
+    .orb-3 { width:200px; height:200px; background:radial-gradient(circle, rgba(37,99,235,0.45) 0%, transparent 70%); top:40%; left:55%; animation:orbDrift 16s infinite; animation-delay:-12s; }
+    @keyframes orbDrift { 0%,100%{transform:translate(0,0) scale(1);} 25%{transform:translate(60px,-40px) scale(1.15);} 50%{transform:translate(-30px,-80px) scale(0.9);} 75%{transform:translate(-50px,30px) scale(1.1);} }
+
+    @keyframes floatSection {
+  0%, 100% { transform: translateY(0px); }
+  25% { transform: translateY(-6px); }
+  50% { transform: translateY(-3px); }
+  75% { transform: translateY(-8px); }
+}
+
+/* Apply the float to content cards */
+.content-card {
+  animation: floatSection 7.5s ease-in-out infinite;
+}
+.content-card:nth-child(2) { animation-delay: 0.5s; }
+.content-card:nth-child(3) { animation-delay: 1.2s; }
+
+    .dashboard-wrapper { position:relative; z-index:1; max-width:1450px; margin:0 auto; padding:40px; display:flex; flex-direction:column; gap:36px; }
+
+    /* Header */
+    .dashboard-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:24px; }
+    .logo-area { display:flex; align-items:center; gap:18px; }
+    .logo-icon { width:56px; height:56px; border-radius:14px; background:linear-gradient(135deg, #1e3a6e, #3b82f6, #60a5fa); display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:0 0 30px rgba(59,130,246,0.4); }
+    .logo-icon svg { width:32px; height:32px; }
+    .logo-text { font-size:1.7rem; font-weight:800; color:var(--text-primary); letter-spacing:-0.03em; }
+    .logo-text span { color:var(--blue-accent); font-weight:300; }
+    .header-actions { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+
+    .signout-btn { padding:12px 24px; border-radius:30px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; font-weight:600; font-size:1rem; cursor:pointer; transition:0.3s; display:flex; align-items:center; gap:8px; }
+    .signout-btn:hover { background:rgba(239,68,68,0.25); border-color:#f87171; color:#fff; box-shadow:0 0 20px rgba(239,68,68,0.3); }
+
+    .toggle-group { display:flex; align-items:center; gap:6px; background:var(--glass-bg); backdrop-filter:blur(16px); border-radius:30px; padding:6px; border:1px solid var(--glass-border); }
+    .toggle-btn { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:transparent; border:none; color:var(--text-muted); cursor:pointer; transition:0.2s; }
+    .toggle-btn svg { width:22px; height:22px; }
+    .toggle-btn.active { background:var(--blue-primary); color:#fff; box-shadow:0 0 16px var(--blue-glow); }
+    .toggle-btn:hover { background:rgba(255,255,255,0.08); }
+
+    .tab-nav { display:flex; gap:6px; background:var(--glass-bg); border-radius:40px; padding:6px; backdrop-filter:blur(20px); border:1px solid var(--glass-border); align-self:flex-start; }
+    .tab-btn { padding:14px 28px; border-radius:35px; border:none; background:transparent; color:var(--text-muted); font-size:1.05rem; font-weight:600; cursor:pointer; transition:0.3s; white-space:nowrap; display:flex; align-items:center; gap:10px; }
+    .tab-btn svg { width:20px; height:20px; }
+    .tab-btn.active { background:linear-gradient(135deg, #1a3a6e, #3b82f6); color:#fff; box-shadow:0 8px 24px rgba(59,130,246,0.45); }
+    .tab-btn:hover:not(.active) { color:var(--text-secondary); background:var(--tab-hover-bg); }
+
+    .content-card { background:var(--glass-bg); border-radius:calc(var(--radius-lg)*1.2); border:1px solid var(--glass-border); padding:40px; backdrop-filter:blur(24px); box-shadow:var(--card-shadow); transition:0.4s; }
+    .content-card:hover { box-shadow:var(--card-shadow-hover); }
+    .section-title { font-size:1.8rem; font-weight:800; margin-bottom:8px; letter-spacing:-0.02em; }
+    .section-subtitle { font-size:1.05rem; color:var(--text-muted); margin-bottom:28px; }
+
+    .form-card { background:var(--bg-input); backdrop-filter:blur(12px); border-radius:18px; border:1px solid var(--border-input); padding:28px; margin-bottom:30px; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:20px; align-items:end; }
+    .form-group { display:flex; flex-direction:column; gap:8px; text-align:start; }
+    label { font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); }
+    input, select, textarea { width:100%; padding:14px 16px; border-radius:12px; border:1.5px solid var(--border-input); background:var(--bg-input); color:var(--text-primary); font-size:1.05rem; outline:none; transition:0.3s; font-family:inherit; }
+    input:focus, select:focus, textarea:focus { border-color:var(--blue-primary); box-shadow:0 0 0 4px rgba(59,130,246,0.15); }
+
+    .btn { padding:14px 28px; border-radius:30px; border:none; font-weight:700; font-size:1rem; cursor:pointer; transition:0.3s; white-space:nowrap; display:flex; align-items:center; gap:10px; justify-content:center; }
+    .btn svg { width:20px; height:20px; }
+    .btn-primary { background:linear-gradient(135deg, #2563eb, #3b82f6); color:#fff; box-shadow:0 6px 20px rgba(59,130,246,0.35); }
+    .btn-primary:hover { box-shadow:0 10px 30px rgba(59,130,246,0.5); transform:translateY(-3px); }
+    .btn-outline { background:transparent; border:1.5px solid var(--btn-outline-border); color:var(--text-secondary); }
+    .btn-outline:hover { border-color:var(--blue-primary); background:var(--btn-outline-hover-bg); }
+    .btn-sm { padding:10px 16px; font-size:0.9rem; border-radius:24px; gap:6px; }
+    .btn-sm svg { width:18px; height:18px; }
+    .btn-update { background:var(--btn-update-bg); border:1px solid rgba(59,130,246,0.4); color:var(--btn-update-text); }
+    .btn-update:hover { background:var(--btn-update-hover); color:#fff; }
+    .btn-delete { background:var(--btn-delete-bg); border:1px solid rgba(239,68,68,0.35); color:var(--btn-delete-text); }
+    .btn-delete:hover { background:var(--btn-delete-hover); color:#fff; }
+
+    .table-container { overflow-x:auto; border-radius:16px; }
+    table { width:100%; border-collapse:separate; border-spacing:0 10px; min-width:900px; }
+    thead th { padding:18px 16px; text-align:left; font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); background:var(--table-th-bg); }
+    tbody tr { background:var(--table-tr-bg); border-radius:14px; transition:0.3s; }
+    tbody tr:hover { transform:translateY(-4px); box-shadow:var(--table-tr-shadow), 0 0 0 1px rgba(59,130,246,0.4); background:var(--table-tr-hover); }
+    td { padding:18px 16px; font-size:1.05rem; color:var(--text-secondary); font-weight:500; }
+    .badge { padding:6px 14px; border-radius:20px; font-size:0.85rem; font-weight:600; background:var(--badge-bg); border:1px solid rgba(59,130,246,0.3); color:var(--btn-update-text); }
+
+    .modal-overlay { position:fixed; inset:0; z-index:100; background:var(--modal-overlay); backdrop-filter:blur(16px); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:0.4s; }
+    .modal-overlay.active { opacity:1; pointer-events:auto; }
+    .modal-panel { background:var(--bg-deep); border-radius:calc(var(--radius-lg)*1.2); border:1px solid var(--border-input); padding:40px; width:90%; max-width:540px; box-shadow:0 30px 80px rgba(0,0,0,0.8); transform:scale(0.9); transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display:flex; flex-direction:column; gap:20px; }
+    .modal-overlay.active .modal-panel { transform:scale(1); }
+    .modal-panel h3 { margin:0; color:var(--text-primary); font-size:1.6rem; font-weight:800; }
+
+    .overview-stat-card { background:var(--glass-bg); backdrop-filter:blur(16px); border-radius:calc(var(--radius-lg)*1.1); border:1px solid var(--glass-border); padding:36px; text-align:center; transition:0.4s; display:flex; flex-direction:column; align-items:center; }
+    .overview-stat-card:hover { transform:translateY(-6px); border-color:rgba(59,130,246,0.5); box-shadow:0 15px 40px rgba(59,130,246,0.2); }
+    .overview-stat-card svg { width:56px; height:56px; margin-bottom:20px; color:var(--blue-accent); }
+    .stat-value { font-size:3.2rem; font-weight:800; color:var(--text-primary); margin-bottom:6px; line-height:1; }
+    .overview-stat-card div:last-child { font-size:1.1rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+
+    .tab-content { display:none; }
+    .tab-content.active { display:block; animation: fadeSlideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    @keyframes fadeSlideUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+
+    #toast-overlay-bg { position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,0.6); backdrop-filter:blur(16px); opacity:0; transition:opacity 0.4s; pointer-events:none; }
+    #toast-overlay-bg.active { opacity:1; pointer-events:auto; }
+    #toast-container { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+
+    .toast { background:var(--glass-bg); backdrop-filter:blur(30px); border-radius:24px; border:1px solid var(--glass-border); padding:50px 70px; color:var(--text-primary); display:flex; flex-direction:column; align-items:center; gap:24px; font-size:2.2rem; font-weight:800; animation:toastPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, toastFade 0.3s 1s forwards; pointer-events:auto; text-align:center; max-width:85%; }
+    .toast svg { width:90px; height:90px; stroke-width:2.5px; }
+    .toast.success { color:var(--success); box-shadow:0 40px 100px rgba(34,197,94,0.3), 0 0 0 2px var(--success); }
+    .toast.error { color:var(--danger); box-shadow:0 40px 100px rgba(239,68,68,0.3), 0 0 0 2px var(--danger); }
+    .toast.info { color:var(--blue-accent); box-shadow:0 40px 100px rgba(96,165,250,0.3), 0 0 0 2px var(--blue-accent); }
+    
+    @keyframes toastPop { 0% { opacity:0; transform:scale(0.7) translateY(40px); } 100% { opacity:1; transform:scale(1) translateY(0); } }
+    @keyframes toastFade { 0% { opacity:1; transform:scale(1); } 100% { opacity:0; transform:scale(0.9); } }
+
+    [dir="rtl"] .dashboard-header { flex-direction:row-reverse; }
+    [dir="rtl"] .logo-area { flex-direction:row-reverse; }
+    [dir="rtl"] .tab-nav { align-self:flex-end; }
+    [dir="rtl"] th, [dir="rtl"] td { text-align:right; }
+
+    @media (max-width:768px) {
+      .dashboard-wrapper { padding:16px; }
+      .form-card { grid-template-columns:1fr; }
+      .tab-btn { padding:10px 14px; font-size:0.8rem; }
+    }
+  </style>
+</head>
+<body class="">
+  <canvas id="starfield"></canvas>
+  <div class="grid-floor"></div>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+
+  <div class="dashboard-wrapper">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="logo-area">
+        <div class="logo-icon"><i data-lucide="shield"></i></div>
+        <div class="logo-text" data-i18n="brand">Safe<span>Space</span> <small style="color:var(--text-muted);">| Manager</small></div>
+      </div>
+      <div class="header-actions">
+        <div class="toggle-group" id="theme-toggle-group">
+          <button type="button" class="toggle-btn active" data-theme="dark" title="Dark Mode"><i data-lucide="moon"></i></button>
+          <button type="button" class="toggle-btn" data-theme="light" title="Light Mode"><i data-lucide="sun"></i></button>
+        </div>
+        <div class="toggle-group" id="lang-toggle-group">
+          <button type="button" class="toggle-btn active" data-lang="en">EN</button>
+          <button type="button" class="toggle-btn" data-lang="ar">عربي</button>
+        </div>
+        <a th:href="@{/logout}" class="signout-btn" data-i18n="signout" style="text-decoration:none;"><i data-lucide="log-out"></i> Sign Out</a>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="employees" data-i18n="tab_employees"><i data-lucide="users"></i> Employees</button>
+      <button class="tab-btn" data-tab="departments" data-i18n="tab_departments"><i data-lucide="factory"></i> Departments</button>
+      <button class="tab-btn" data-tab="events" data-i18n="tab_events"><i data-lucide="megaphone"></i> Events</button>
+      <button class="tab-btn" data-tab="overview" data-i18n="tab_overview"><i data-lucide="pie-chart"></i> Overview</button>
+    </nav>
+
+    <!-- Employees Tab -->
+    <div class="tab-content active" id="tab-employees">
+      <div class="content-card">
+        <h2 class="section-title" data-i18n="emp_title">Employee Management</h2>
+        <p class="section-subtitle" data-i18n="emp_sub">Add, monitor, update factory employees</p>
+        <div class="form-card" id="emp-form">
+          <div class="form-group"><label data-i18n="name">Full Name</label><input id="emp-name" placeholder="Employee name"></div>
+          <div class="form-group"><label data-i18n="dept">Department</label><select id="emp-dept"></select></div>
+          <div class="form-group"><label data-i18n="job_title">Job Title</label><input id="emp-title" placeholder="e.g. Senior Operator"></div>
+          <div class="form-group"><label data-i18n="email">Email</label><input id="emp-email" placeholder="employee@factory.com"></div>
+          <button class="btn btn-primary" id="add-emp-btn" data-i18n="add_emp"><i data-lucide="plus"></i> Add Employee</button>
+        </div>
+        <div class="table-container"><table><thead><tr><th data-i18n="id">ID</th><th data-i18n="name">Name</th><th data-i18n="dept">Department</th><th data-i18n="job_title">Title</th><th data-i18n="email">Email</th><th><i data-lucide="settings"></i></th></tr></thead><tbody id="emp-table-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Departments Tab -->
+    <div class="tab-content" id="tab-departments">
+      <div class="content-card">
+        <h2 class="section-title" data-i18n="dept_title">Department Management</h2>
+        <p class="section-subtitle" data-i18n="dept_sub">Create and update factory departments</p>
+        <div class="form-card" id="dept-form">
+          <div class="form-group"><label data-i18n="dept_name">Department Name</label><input id="dept-name" placeholder="e.g. Assembly"></div>
+          <div class="form-group"><label data-i18n="dept_size">Department Size</label><select id="dept-size"><option value="small" data-i18n="size_small">Small</option><option value="medium" data-i18n="size_medium" selected>Medium</option><option value="large" data-i18n="size_large">Large</option></select></div>
+          <button class="btn btn-primary" id="add-dept-btn" data-i18n="add_dept"><i data-lucide="plus"></i> Add Department</button>
+        </div>
+        <div class="table-container"><table><thead><tr><th data-i18n="id">ID</th><th data-i18n="dept_name">Department</th><th data-i18n="dept_size">Size</th><th data-i18n="emp_count">Employees Count</th><th><i data-lucide="settings"></i></th></tr></thead><tbody id="dept-table-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Events Tab -->
+    <div class="tab-content" id="tab-events">
+      <div class="content-card">
+        <h2 class="section-title" data-i18n="event_title">Safety Event Broadcasting</h2>
+        <p class="section-subtitle" data-i18n="event_sub">Push alerts and trainings to co-workers</p>
+        <div class="form-card" id="event-form">
+          <div class="form-group"><label data-i18n="event_type">Event Type</label><select id="event-type"><option value="first_aid" data-i18n="type_firstaid">First Aid Training</option><option value="warning" data-i18n="type_warning">Warning</option><option value="drill" data-i18n="type_drill">Evacuation Drill</option><option value="meeting" data-i18n="type_meeting">Safety Meeting</option></select></div>
+          <div class="form-group"><label data-i18n="event_desc">Description</label><textarea id="event-desc" rows="2" placeholder="Event details..."></textarea></div>
+          <button class="btn btn-primary" id="add-event-btn" data-i18n="add_event"><i data-lucide="send"></i> Broadcast Event</button>
+        </div>
+        <div class="table-container"><table><thead><tr><th data-i18n="id">ID</th><th data-i18n="event_type">Type</th><th data-i18n="event_desc">Description</th><th data-i18n="date">Date</th><th><i data-lucide="trash-2"></i></th></tr></thead><tbody id="event-table-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Overview Tab -->
+    <div class="tab-content" id="tab-overview">
+      <div class="content-card">
+        <h2 class="section-title" data-i18n="over_title">Safety Overview</h2>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px;">
+          <div class="overview-stat-card"><i data-lucide="check-circle-2"></i><div class="stat-value">98.7%</div><div data-i18n="compliance">Compliance</div></div>
+          <div class="overview-stat-card"><i data-lucide="hard-hat"></i><div class="stat-value" id="stat-employees">0</div><div data-i18n="total_emp">Employees</div></div>
+          <div class="overview-stat-card"><i data-lucide="alert-triangle"></i><div class="stat-value">3</div><div data-i18n="incidents">Open Incidents</div></div>
+          <div class="overview-stat-card"><i data-lucide="clipboard-check"></i><div class="stat-value">12</div><div data-i18n="trainings">Trainings Done</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-overlay-bg"></div>
+  <div id="toast-container"></div>
+  <!-- Modals -->
+  <div class="modal-overlay" id="modal-update-emp"><div class="modal-panel"><h3 data-i18n="update_emp">Update Employee</h3><div class="form-group"><label>ID</label><input id="upd-emp-id" disabled></div><input id="upd-emp-phone" type="hidden"><div class="form-group"><label data-i18n="name">Name</label><input id="upd-emp-name"></div><div class="form-group"><label data-i18n="dept">Department</label><select id="upd-emp-dept"></select></div><div class="form-group"><label data-i18n="job_title">Title</label><input id="upd-emp-title"></div><div class="form-group"><label data-i18n="email">Email</label><input id="upd-emp-email"></div><div style="display:flex; gap:10px; justify-content:flex-end;"><button class="btn btn-outline cancel-modal" data-i18n="cancel">Cancel</button><button class="btn btn-primary" id="save-emp-update" data-i18n="save">Save</button></div></div></div>
+  <div class="modal-overlay" id="modal-delete-emp"><div class="modal-panel"><h3 data-i18n="confirm_del">Confirm Delete</h3><p id="del-emp-name"></p><div style="display:flex; gap:10px; justify-content:center;"><button class="btn btn-outline cancel-modal" data-i18n="cancel">Cancel</button><button class="btn btn-delete" id="confirm-del-emp" data-i18n="delete">Delete</button></div></div></div>
+  <div class="modal-overlay" id="modal-update-dept"><div class="modal-panel"><h3 data-i18n="update_dept">Update Department</h3><input id="upd-dept-id" type="hidden"><div class="form-group"><label data-i18n="dept_name">Name</label><input id="upd-dept-name"></div><div class="form-group"><label data-i18n="dept_size">Size</label><select id="upd-dept-size"></select></div><div style="display:flex; gap:10px; justify-content:flex-end;"><button class="btn btn-outline cancel-modal" data-i18n="cancel">Cancel</button><button class="btn btn-primary" id="save-dept-update" data-i18n="save">Save</button></div></div></div>
+  <div class="modal-overlay" id="modal-delete-dept"><div class="modal-panel"><h3 data-i18n="confirm_del_dept">Delete Department?</h3><p id="del-dept-name"></p><div style="display:flex; gap:10px; justify-content:center;"><button class="btn btn-outline cancel-modal" data-i18n="cancel">Cancel</button><button class="btn btn-delete" id="confirm-del-dept" data-i18n="delete">Delete</button></div></div></div>
+  <div class="modal-overlay" id="modal-delete-event"><div class="modal-panel"><h3 data-i18n="confirm_del_event">Remove Event?</h3><p id="del-event-title"></p><div style="display:flex; gap:10px; justify-content:center;"><button class="btn btn-outline cancel-modal" data-i18n="cancel">Cancel</button><button class="btn btn-delete" id="confirm-del-event" data-i18n="delete">Delete</button></div></div></div>
+
+  <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+
+      // ── State ──
+      let currentLang = 'en';
+      let employees = [
+        /*[# th:each="u : ${users}"]*/ 
+        { 
+            id: /*[[${u.userId}]]*/ 'EMP-001', 
+            name: /*[[${u.username}]]*/ 'Ahmed Hassan', 
+            department: /*[[${(u.job != null && u.job.dep != null) ? u.job.dep.dep_title : 'N/A'}]]*/ 'Production', 
+            jobTitle: /*[[${(u.job != null) ? u.job.job_title : 'N/A'}]]*/ 'Senior Operator', 
+            email: /*[[${userEmails[u.userId] != null ? userEmails[u.userId] : 'N/A'}]]*/ 'ahmed.h@factory.com' 
+        },
+        /*[/]*/
+      ];
+      let departments = [
+        /*[# th:each="d : ${departments}"]*/ 
+        { 
+            id: /*[[${d.dep_id}]]*/ 'DEPT-1', 
+            name: /*[[${d.dep_title}]]*/ 'Production', 
+            capacity: /*[[${d.department_capacity}]]*/ 100
+        },
+        /*[/]*/
+      ];
+
+      let events = [
+        { id:'EVT-001', type:'first_aid', description:'Annual first aid refresher for all staff', date:'2026-05-10' },
+        { id:'EVT-002', type:'warning', description:'Slippery floor in sector B – caution advised', date:'2026-04-28' },
+      ];
+      let empNextId=7, deptNextId=6, eventNextId=3;
+
+      // ── Translations (professional Arabic) ──
+      const i18n = {
+        en: {
+          brand:'Safe<span>Space</span> <small>| Manager</small>',
+          signout:'<i data-lucide="log-out"></i> Sign Out',
+          tab_employees:'<i data-lucide="users"></i> Employees', tab_departments:'<i data-lucide="factory"></i> Departments', tab_events:'<i data-lucide="megaphone"></i> Events', tab_overview:'<i data-lucide="pie-chart"></i> Overview',
+          emp_title:'Employee Management', emp_sub:'Add, monitor, update factory employees',
+          dept_title:'Department Management', dept_sub:'Create and update factory departments',
+          event_title:'Safety Event Broadcasting', event_sub:'Push alerts and trainings to co-workers',
+          over_title:'Safety Overview',
+          name:'Full Name', dept:'Department', job_title:'Job Title', email:'Email',
+          add_emp:'<i data-lucide="plus"></i> Add Employee', add_dept:'<i data-lucide="plus"></i> Add Department', add_event:'<i data-lucide="send"></i> Broadcast Event',
+          dept_name:'Department Name', dept_size:'Department Size', emp_count:'Employees Count',
+          size_small:'Small', size_medium:'Medium', size_large:'Large',
+          event_type:'Event Type', event_desc:'Description', date:'Date',
+          type_firstaid:'First Aid Training', type_warning:'Warning', type_drill:'Evacuation Drill', type_meeting:'Safety Meeting',
+          id:'ID', compliance:'Compliance', total_emp:'Employees', incidents:'Open Incidents', trainings:'Trainings Done',
+          update_emp:'Update Employee', update_dept:'Update Department',
+          confirm_del:'Confirm Delete', confirm_del_dept:'Delete Department?', confirm_del_event:'Remove Event?',
+          cancel:'Cancel', save:'Save', delete:'Delete',
+          emp_placeholder:'Employee name', dept_placeholder:'Select department',
+          fill_fields: 'Please fill all required fields', emp_added: 'Employee added successfully', emp_updated: 'Employee updated successfully', emp_deleted: 'Employee deleted', dept_added: 'Department added successfully', dept_updated: 'Department updated successfully', dept_deleted: 'Department deleted', event_added: 'Event broadcasted successfully', event_deleted: 'Event removed', signout_sim: 'Sign out simulated'
+        },
+        ar: {
+          brand:'Safe<span>Space</span> <small>| المدير</small>',
+          signout:'<i data-lucide="log-out"></i> تسجيل الخروج',
+          tab_employees:'<i data-lucide="users"></i> الموظفون', tab_departments:'<i data-lucide="factory"></i> الأقسام', tab_events:'<i data-lucide="megaphone"></i> التنبيهات', tab_overview:'<i data-lucide="pie-chart"></i> الملخص',
+          emp_title:'إدارة الموظفين', emp_sub:'إضافة ومتابعة وتحديث بيانات موظفي المصنع',
+          dept_title:'إدارة الأقسام', dept_sub:'إنشاء وتحديث أقسام المصنع',
+          event_title:'بث التنبيهات والفعاليات', event_sub:'إرسال تنبيهات وتدريبات إلى العاملين',
+          over_title:'ملخص السلامة',
+          name:'الاسم الكامل', dept:'القسم', job_title:'المسمى الوظيفي', email:'البريد الإلكتروني',
+          add_emp:'<i data-lucide="plus"></i> إضافة موظف', add_dept:'<i data-lucide="plus"></i> إضافة قسم', add_event:'<i data-lucide="send"></i> إرسال تنبيه',
+          dept_name:'اسم القسم', dept_size:'حجم القسم', emp_count:'عدد الموظفين',
+          size_small:'صغير', size_medium:'متوسط', size_large:'كبير',
+          event_type:'نوع التنبيه', event_desc:'الوصف', date:'التاريخ',
+          type_firstaid:'تدريب إسعافات أولية', type_warning:'تحذير', type_drill:'تمرين إخلاء', type_meeting:'اجتماع سلامة',
+          id:'المعرف', compliance:'نسبة الامتثال', total_emp:'الموظفين', incidents:'بلاغات مفتوحة', trainings:'تدريبات مكتملة',
+          update_emp:'تحديث بيانات الموظف', update_dept:'تحديث القسم',
+          confirm_del:'تأكيد الحذف', confirm_del_dept:'حذف القسم؟', confirm_del_event:'إزالة التنبيه؟',
+          cancel:'إلغاء', save:'حفظ', delete:'حذف',
+          emp_placeholder:'اسم الموظف', dept_placeholder:'اختر القسم',
+          fill_fields: 'يرجى ملء جميع الحقول المطلوبة', emp_added: 'تمت إضافة الموظف بنجاح', emp_updated: 'تم تحديث بيانات الموظف', emp_deleted: 'تم حذف الموظف', dept_added: 'تمت إضافة القسم بنجاح', dept_updated: 'تم تحديث القسم', dept_deleted: 'تم حذف القسم', event_added: 'تم بث التنبيه بنجاح', event_deleted: 'تمت إزالة التنبيه', signout_sim: 'محاكاة تسجيل الخروج'
+        }
+      };
+
+      function t(key) { return i18n[currentLang][key] || key; }
+
+      // Apply translations and RTL
+      function applyLanguage(lang, isInit = false) {
+        const wrapper = document.querySelector('.dashboard-wrapper');
+        
+        const executeSwitch = () => {
+          currentLang = lang;
+          document.documentElement.lang = lang;
+          document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+          document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            el.innerHTML = t(key);
+          });
+          // Update placeholders
+          document.getElementById('emp-name').placeholder = t('emp_placeholder');
+          ['emp-dept', 'upd-emp-dept'].forEach(id => {
+            const sel = document.getElementById(id);
+            if (sel && sel.options.length > 0) sel.options[0].textContent = t('dept_placeholder');
+          });
+          renderAllTables();
+          updateOverviewStats();
+          
+          if (!isInit && wrapper) {
+            wrapper.style.opacity = '1';
+            wrapper.style.transform = 'scale(1)';
+          }
+        };
+
+        if (isInit) {
+          executeSwitch();
+        } else {
+          if (wrapper) {
+            wrapper.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+            wrapper.style.opacity = '0';
+            wrapper.style.transform = 'scale(0.98)';
+          }
+          setTimeout(executeSwitch, 150);
+        }
+      }
+
+      // Theme toggle
+      function setTheme(theme) {
+        document.body.classList.toggle('light-mode', theme === 'light');
+        document.querySelectorAll('#theme-toggle-group .toggle-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`#theme-toggle-group [data-theme="${theme}"]`).classList.add('active');
+      }
+
+      // ── Render functions ──
+      function renderEmployeeTable() {
+        const tbody = document.getElementById('emp-table-body');
+        tbody.innerHTML = employees.map(e => `
+          <tr>
+            <td><span class="badge">${e.id}</span></td><td>${e.name}</td><td>${e.department}</td><td>${e.jobTitle}</td><td>${e.email}</td>
+            <td><div style="display:flex; gap:10px;"><button class="btn btn-sm btn-update update-emp" data-id="${e.id}"><i data-lucide="edit-2"></i></button> <button class="btn btn-sm btn-delete delete-emp" data-id="${e.id}"><i data-lucide="trash-2"></i></button></div></td>
+          </tr>`).join('');
+        if(window.lucide) lucide.createIcons();
+      }
+
+      function sizeFromCapacity(cap) {
+        return cap <= 50 ? 'small' : (cap >= 150 ? 'large' : 'medium');
+      }
+      function renderDeptTable() {
+        const tbody = document.getElementById('dept-table-body');
+        const sizeMap = { small: t('size_small'), medium: t('size_medium'), large: t('size_large') };
+        tbody.innerHTML = departments.map(d => {
+          const count = employees.filter(e => e.department === d.name).length;
+          return `
+          <tr>
+            <td><span class="badge">${d.id}</span></td><td>${d.name}</td><td>${sizeMap[sizeFromCapacity(d.capacity)]}</td><td>${count}</td>
+            <td><div style="display:flex; gap:10px;"><button class="btn btn-sm btn-update update-dept" data-id="${d.id}"><i data-lucide="edit-2"></i></button> <button class="btn btn-sm btn-delete delete-dept" data-id="${d.id}"><i data-lucide="trash-2"></i></button></div></td>
+          </tr>`;
+        }).join('');
+        if(window.lucide) lucide.createIcons();
+      }
+      function renderEventTable() {
+        const tbody = document.getElementById('event-table-body');
+        const typeMap = { first_aid: t('type_firstaid'), warning: t('type_warning'), drill: t('type_drill'), meeting: t('type_meeting') };
+        tbody.innerHTML = events.map(ev => `
+          <tr>
+            <td><span class="badge">${ev.id}</span></td><td>${typeMap[ev.type]}</td><td>${ev.description}</td><td>${ev.date}</td>
+            <td><div style="display:flex; gap:10px;"><button class="btn btn-sm btn-delete delete-event" data-id="${ev.id}"><i data-lucide="trash-2"></i></button></div></td>
+          </tr>`).join('');
+        if(window.lucide) lucide.createIcons();
+      }
+      function renderAllTables() { renderEmployeeTable(); renderDeptTable(); renderEventTable(); }
+
+      function populateDeptSelects() {
+        const selects = ['emp-dept','upd-emp-dept'];
+        selects.forEach(id => {
+          const sel = document.getElementById(id);
+          if(!sel) return;
+          // Use department id as <select> value, so we can call the correct backend endpoints.
+          sel.innerHTML = `<option value="">${t('dept_placeholder')}</option>` + departments.map(d => `<option value="${d.id}" data-dept-name="${d.name}">${d.name}</option>`).join('');
+        });
+        document.getElementById('upd-dept-size').innerHTML = ['small','medium','large'].map(s => `<option value="${s}">${t('size_'+s)}</option>`).join('');
+      }
+
+      function updateOverviewStats() {
+        document.getElementById('stat-employees').textContent = employees.length;
+      }
+
+      function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const bg = document.getElementById('toast-overlay-bg');
+        if(!container) return;
+        
+        container.innerHTML = '';
+        if(bg) bg.classList.add('active');
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = 'info'; 
+        if(type === 'success') icon = 'check-circle'; 
+        if(type === 'error') icon = 'alert-triangle';
+        
+        toast.innerHTML = `<i data-lucide="${icon}"></i> <span>${message}</span>`;
+        container.appendChild(toast);
+        lucide.createIcons({root: toast});
+        
+        setTimeout(() => { 
+          toast.remove(); 
+          if(container.children.length === 0 && bg) bg.classList.remove('active');
+        }, 1300);
+      }
+
+      // ── Modals helpers ──
+      function openModal(id) { document.getElementById(id).classList.add('active'); }
+      function closeAllModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
+      document.querySelectorAll('.cancel-modal').forEach(b => b.addEventListener('click', closeAllModals));
+      window.addEventListener('keydown', e => { if(e.key==='Escape') closeAllModals(); });
+
+      // ── Employee actions ──
+      document.getElementById('add-emp-btn').addEventListener('click', () => {
+        const name = document.getElementById('emp-name').value.trim();
+        const title = document.getElementById('emp-title').value.trim();
+        const email = document.getElementById('emp-email').value.trim();
+        const depId = Number(document.getElementById('emp-dept').value || 0);
+        if(!name||!email||!depId) return showToast(t('fill_fields'), 'error');
+
+        // Pick jobId from backend jobs list for the selected department.
+        fetch('/manager/departments/' + depId + '/jobs', { headers: {'Accept':'application/json'} })
+          .then(r => r.ok ? r.json() : [])
+          .then(list => {
+            if(!Array.isArray(list) || list.length === 0) {
+              return showToast('No jobs found for this department', 'error');
+            }
+            const desired = (title || '').toLowerCase().trim();
+            const picked = desired
+              ? list.find(j => (j.title || '').toLowerCase().trim() === desired)
+              : list[0];
+            const jobId = picked && picked.jobId != null ? picked.jobId : list[0].jobId;
+            if(jobId == null) return showToast('No jobId available', 'error');
+
+            const data = new URLSearchParams();
+            data.append('username', name);
+            data.append('email', email);
+            data.append('phoneNumber', '0000000000'); // No phone field on this UI
+            data.append('password', 'Welcome1!'); // Default password (must match ValidationService)
+            data.append('jobId', jobId);
+
+            return fetch('/manager/register', {
+              method: 'POST',
+              headers: {
+                'Content-Type':'application/x-www-form-urlencoded',
+                'X-Requested-With': 'fetch',
+                'Accept': 'application/json'
+              },
+              body: data
+            })
+              .then(r => r.ok ? r.json() : r.json().catch(()=>({ok:false})))
+              .then(res => {
+                if(res && res.ok) {
+                  showToast(t('emp_added'), 'success');
+                  setTimeout(()=>location.reload(), 1000);
+                } else {
+                  showToast((res && res.error) ? res.error : 'Registration failed', 'error');
+                }
+              });
+          });
+      });
+
+      document.addEventListener('click', e => {
+        const btnUpdateEmp = e.target.closest('.update-emp');
+        if(btnUpdateEmp) {
+          const userId = btnUpdateEmp.dataset.id;
+          fetch('/manager/user/' + userId, { headers: {'Accept':'application/json'} })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+              if(!data) return;
+              document.getElementById('upd-emp-id').value = data.userId;
+              document.getElementById('upd-emp-name').value = data.username;
+              document.getElementById('upd-emp-phone').value = data.phoneNumber || '';
+              document.getElementById('upd-emp-dept').value = data.depId || '';
+              document.getElementById('upd-emp-title').value = data.jobTitle || '';
+              document.getElementById('upd-emp-email').value = data.email || '';
+              openModal('modal-update-emp');
+            });
+        }
+        const btnDeleteEmp = e.target.closest('.delete-emp');
+        if(btnDeleteEmp) {
+          const userId = btnDeleteEmp.dataset.id;
+          fetch('/manager/user/' + userId, { headers: {'Accept':'application/json'} })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+              if(!data) return;
+              document.getElementById('del-emp-name').textContent = `${data.username} (${data.userId})`;
+              window._deleteEmpId = userId;
+              openModal('modal-delete-emp');
+            });
+        }
+      });
+      document.getElementById('save-emp-update').addEventListener('click', ()=>{
+        const id = document.getElementById('upd-emp-id').value;
+        const name = document.getElementById('upd-emp-name').value;
+        const email = document.getElementById('upd-emp-email').value;
+        const phoneNumber = document.getElementById('upd-emp-phone').value || '0000000000';
+        const depId = Number(document.getElementById('upd-emp-dept').value || 0);
+        const title = document.getElementById('upd-emp-title').value.trim();
+
+        if(!id || !depId) return showToast(t('fill_fields'), 'error');
+
+        fetch('/manager/departments/' + depId + '/jobs', { headers: {'Accept':'application/json'} })
+          .then(r => r.ok ? r.json() : [])
+          .then(list => {
+            if(!Array.isArray(list) || list.length === 0) {
+              return showToast('No jobs found for this department', 'error');
+            }
+            const desired = (title || '').toLowerCase().trim();
+            const picked = desired
+              ? list.find(j => (j.title || '').toLowerCase().trim() === desired)
+              : list[0];
+            const jobId = picked && picked.jobId != null ? picked.jobId : list[0].jobId;
+            if(jobId == null) return showToast('No jobId available', 'error');
+        
+            const data = new URLSearchParams();
+            data.append('userId', id);
+            data.append('username', name);
+            data.append('email', email);
+            data.append('phoneNumber', phoneNumber);
+            data.append('jobId', jobId);
+
+            fetch('/manager/update', {
+              method: 'POST',
+              headers: {
+                'Content-Type':'application/x-www-form-urlencoded',
+                'X-Requested-With': 'fetch',
+                'Accept': 'application/json'
+              },
+              body: data
+            })
+              .then(r => r.ok ? r.json() : r.json().catch(()=>({ok:false})))
+              .then(res => {
+                if(res && res.ok) {
+                  showToast(t('emp_updated'), 'success');
+                  setTimeout(()=>location.reload(), 1000);
+                } else {
+                  showToast((res && res.error) ? res.error : 'Update failed', 'error');
+                }
+              });
+          });
+      });
+      document.getElementById('confirm-del-emp').addEventListener('click', ()=>{
+        if(window._deleteEmpId) {
+            const data = new URLSearchParams({ userId: window._deleteEmpId });
+            fetch('/manager/delete', {
+              method: 'POST',
+              headers: {
+                'Content-Type':'application/x-www-form-urlencoded',
+                'X-Requested-With': 'fetch',
+                'Accept': 'application/json'
+              },
+              body: data
+            })
+              .then(r => r.ok ? r.json() : r.json().catch(()=>({ok:false})))
+              .then(res => {
+                if(res && res.ok) {
+                  showToast(t('emp_deleted'), 'info');
+                  setTimeout(()=>location.reload(), 1000);
+                } else {
+                  showToast((res && res.error) ? res.error : 'Delete failed', 'error');
+                }
+              });
+        }
+      });
+
+      // Department actions
+      document.getElementById('add-dept-btn').addEventListener('click', ()=>{
+        const name = document.getElementById('dept-name').value.trim();
+        const size = document.getElementById('dept-size').value;
+        if(!name) return showToast(t('fill_fields'), 'error');
+
+        const capacity = size === 'small' ? 50 : (size === 'large' ? 150 : 100);
+        const data = new URLSearchParams({ depTitle: name, departmentCapacity: capacity });
+
+        fetch('/manager/department/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type':'application/x-www-form-urlencoded',
+            'X-Requested-With': 'fetch',
+            'Accept': 'application/json'
+          },
+          body: data
+        })
+          .then(r => r.ok ? r.json() : r.json().catch(()=>({ok:false})))
+          .then(res => {
+            if(res && res.ok) {
+              showToast(t('dept_added'), 'success');
+              setTimeout(()=>location.reload(), 1000);
+            } else {
+              showToast((res && res.error) ? res.error : 'Create failed', 'error');
+            }
+          });
+      });
+      document.addEventListener('click', e => {
+        const btnUpdateDept = e.target.closest('.update-dept');
+        if(btnUpdateDept) {
+          const id = btnUpdateDept.dataset.id; const d = departments.find(d=>String(d.id)===String(id)); if(!d) return;
+          document.getElementById('upd-dept-id').value=d.id; document.getElementById('upd-dept-name').value=d.name;
+          document.getElementById('upd-dept-size').value=sizeFromCapacity(d.capacity); openModal('modal-update-dept');
+        }
+        const btnDeleteDept = e.target.closest('.delete-dept');
+        if(btnDeleteDept) {
+          const id = btnDeleteDept.dataset.id; const d = departments.find(d=>String(d.id)===String(id)); if(!d) return;
+          document.getElementById('del-dept-name').textContent=d.name; openModal('modal-delete-dept'); window._deleteDeptId=id;
+        }
+      });
+      document.getElementById('save-dept-update').addEventListener('click', ()=>{
+        const id = document.getElementById('upd-dept-id').value; 
+        const name = document.getElementById('upd-dept-name').value;
+        const size = document.getElementById('upd-dept-size').value;
+        const capacity = size === 'small' ? 50 : (size === 'large' ? 150 : 100);
+        const data = new URLSearchParams({ depId: id, depTitle: name, departmentCapacity: capacity });
+
+        fetch('/manager/department/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type':'application/x-www-form-urlencoded',
+            'X-Requested-With': 'fetch',
+            'Accept': 'application/json'
+          },
+          body: data
+        })
+          .then(r => r.ok ? r.json() : r.json().catch(()=>({ok:false})))
+          .then(res => {
+            if(res && res.ok) {
+              showToast(t('dept_updated'), 'success');
+              setTimeout(()=>location.reload(), 1000);
+            } else {
+              showToast((res && res.error) ? res.error : 'Update failed', 'error');
+            }
+          });
+      });
+      document.getElementById('confirm-del-dept').addEventListener('click', ()=>{
+        if(window._deleteDeptId){
+            const data = new URLSearchParams({ depId: window._deleteDeptId });
+            fetch('/manager/department/delete', {
+              method: 'POST',
+              headers: {
+                'Content-Type':'application/x-www-form-urlencoded',
+                'X-Requested-With': 'fetch',
+                'Accept': 'application/json'
+              },
+              body: data
+            })
+              .then(r => r.ok ? r.json() : r.json().catch(()=>({ok:false})))
+              .then(res => {
+                if(res && res.ok) {
+                  showToast(t('dept_deleted'), 'info');
+                  setTimeout(()=>location.reload(), 1000);
+                } else {
+                  showToast((res && res.error) ? res.error : 'Delete failed', 'error');
+                }
+              });
+        }
+      });
+
+      // Event actions
+      document.getElementById('add-event-btn').addEventListener('click', ()=>{
+        const type=document.getElementById('event-type').value;
+        const desc=document.getElementById('event-desc').value.trim();
+        if(!desc) return showToast(t('fill_fields'), 'error');
+        const today=new Date().toISOString().slice(0,10);
+        events.push({ id:`EVT-${String(eventNextId++).padStart(3,'0')}`, type, description:desc, date:today });
+        renderEventTable(); document.getElementById('event-desc').value='';
+        showToast(t('event_added'), 'success');
+      });
+      document.addEventListener('click', e => {
+        const btnDeleteEvent = e.target.closest('.delete-event');
+        if(btnDeleteEvent) {
+          const id = btnDeleteEvent.dataset.id; const ev = events.find(e=>e.id===id); if(!ev) return;
+          document.getElementById('del-event-title').textContent=`${ev.id} - ${ev.description}`; openModal('modal-delete-event'); window._deleteEventId=id;
+        }
+      });
+      document.getElementById('confirm-del-event').addEventListener('click', ()=>{
+        if(window._deleteEventId){ events=events.filter(e=>e.id!==window._deleteEventId); renderEventTable(); }
+        closeAllModals();
+        showToast(t('event_deleted'), 'info');
+      });
+
+      // Tab switching
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', ()=>{
+          document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.remove('active'));
+          document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // Theme toggle
+      document.querySelectorAll('#theme-toggle-group .toggle-btn').forEach(b => b.addEventListener('click', ()=> setTheme(b.dataset.theme)));
+      // Language toggle
+      document.querySelectorAll('#lang-toggle-group .toggle-btn').forEach(b => b.addEventListener('click', ()=>{
+        document.querySelectorAll('#lang-toggle-group .toggle-btn').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        applyLanguage(b.dataset.lang);
+      }));
+
+      // Sign out
+      // document.querySelector('.signout-btn').addEventListener('click', ()=> showToast(t('signout_sim'), 'info'));
+
+      // Starfield
+      const canvas=document.getElementById('starfield'), ctx=canvas.getContext('2d');
+      let stars=[];
+      function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+      resize(); window.addEventListener('resize',()=>{ resize(); initStars(); });
+      function initStars(){ stars=Array.from({length:140},()=>({ x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+0.5, base:Math.random()*0.6+0.3, speed:0.005+Math.random()*0.02, offset:Math.random()*Math.PI*2 })); }
+      initStars();
+      function animate(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        stars.forEach(s=>{ s.alpha=s.base+Math.sin(Date.now()*s.speed+s.offset)*0.25; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle=`rgba(180,210,255,${Math.max(0.1,s.alpha)})`; ctx.fill(); });
+        requestAnimationFrame(animate);
+      }
+      animate();
+
+      // Init
+      populateDeptSelects();
+      renderAllTables();
+      updateOverviewStats();
+      applyLanguage('en', true);
+    });
+  </script>
+</body>
+</html>

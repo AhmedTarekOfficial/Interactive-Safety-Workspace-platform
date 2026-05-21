@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:attr="data-theme=${theme}, dir=${lang == 'ar' ? 'rtl' : 'ltr'}">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${lang=='ar'}?'الفعاليات — سيف جارد':'Events — SafeGuard'">Events</title>
+    <link rel="icon" href="data:,"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+    <style>
+      /* ── Events page extra styles ── */
+      .ev-filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+      .ev-chip { padding:7px 16px; border-radius:20px; border:1px solid var(--bdr);
+                 background:var(--surf); color:var(--txt2); font-size:13px; font-weight:500;
+                 cursor:pointer; transition:all .2s; text-decoration:none; }
+      .ev-chip:hover { border-color:var(--blue); color:var(--blue); }
+      .ev-chip.active-all      { background:var(--blue); color:#fff; border-color:var(--blue); }
+      .ev-chip.active-training { background:#3b82f6; color:#fff; border-color:#3b82f6; }
+      .ev-chip.active-warning  { background:#f59e0b; color:#fff; border-color:#f59e0b; }
+
+      .events-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+      .ev-card { background:var(--surf); border:1px solid var(--bdr); border-radius:var(--r2);
+                 overflow:hidden; box-shadow:var(--sh-sm); transition:transform .2s,box-shadow .2s; }
+      .ev-card:hover { transform:translateY(-2px); box-shadow:var(--sh-md); }
+      .ev-stripe { height:4px; }
+      .ev-stripe.type-training { background:linear-gradient(90deg,#3b82f6,#8b5cf6); }
+      .ev-stripe.sev-low      { background:linear-gradient(90deg,#10b981,#22c55e); }
+      .ev-stripe.sev-mid      { background:linear-gradient(90deg,#f59e0b,#eab308); }
+      .ev-stripe.sev-high     { background:linear-gradient(90deg,#f97316,#ea580c); }
+      .ev-stripe.sev-critical { background:linear-gradient(90deg,#ef4444,#dc2626); box-shadow:0 0 10px rgba(239,68,68,.4); }
+      .ev-body { padding:16px; }
+      .ev-type-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+      .ev-badge { padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+      .ev-badge-training { background:#eff6ff; color:#1d4ed8; }
+      .ev-badge-warning  { background:#fef3c7; color:#92400e; }
+      [data-theme="dark"] .ev-badge-training { background:#1e3a5f; color:#93c5fd; }
+      [data-theme="dark"] .ev-badge-warning  { background:#451a03; color:#fcd34d; }
+      .ev-date { font-size:12px; color:var(--muted); }
+      .ev-title { font-weight:700; font-size:15px; color:var(--txt1); margin-bottom:6px; line-height:1.3; }
+      .ev-desc  { font-size:13px; color:var(--txt2); margin-bottom:8px; line-height:1.5; }
+      .ev-dept  { font-size:11px; color:var(--muted); margin-bottom:12px; }
+      .warn-box { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.3);
+                  border-radius:8px; padding:10px 12px; margin-bottom:10px; }
+      .warn-box-label { font-size:11px; font-weight:600; color:#b45309; margin-bottom:4px; }
+      .warn-box-text  { font-size:12px; color:var(--txt2); line-height:1.5; }
+      .sev-row  { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+      .sev-label { font-size:11px; color:var(--muted); white-space:nowrap; }
+      .sev-track { flex:1; height:6px; background:var(--bdr); border-radius:3px; overflow:hidden; }
+      .sev-fill  { height:100%; border-radius:3px; }
+      .sev-tag   { font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px; }
+      .sev-tag.lv1 { background:rgba(16,185,129,.15);  color:#059669; }
+      .sev-tag.lv2 { background:rgba(245,158,11,.15);  color:#b45309; }
+      .sev-tag.lv3 { background:rgba(249,115,22,.15);  color:#c2410c; }
+      .sev-tag.lv4 { background:rgba(239,68,68,.15);   color:#b91c1c; }
+      .ev-footer { display:flex; gap:6px; flex-wrap:wrap; padding-top:8px; border-top:1px solid var(--bdr); }
+
+      /* modal extra */
+      .warn-extra { display:none; }
+      .warn-extra.visible { display:block; }
+      .ev-type-row-modal { display:flex; gap:8px; margin-bottom:4px; }
+      .ev-type-opt { flex:1; padding:10px; border:2px solid var(--bdr); border-radius:8px;
+                     text-align:center; cursor:pointer; font-size:13px; font-weight:600;
+                     transition:all .2s; background:var(--surf); color:var(--txt2); }
+      .ev-type-opt.sel-training { border-color:#3b82f6; background:#eff6ff; color:#1d4ed8; }
+      .ev-type-opt.sel-warning  { border-color:#f59e0b; background:#fef3c7; color:#92400e; }
+      [data-theme="dark"] .ev-type-opt.sel-training { background:#1e3a5f; color:#93c5fd; }
+      [data-theme="dark"] .ev-type-opt.sel-warning  { background:#451a03; color:#fcd34d; }
+      .sev-slider-wrap { margin-top:4px; }
+      .sev-slider-wrap input[type=range] { width:100%; accent-color:var(--blue); }
+      .sev-preview { display:flex; align-items:center; gap:10px; margin-top:8px; }
+      .sev-bar-track { flex:1; height:8px; background:var(--bdr); border-radius:4px; overflow:hidden; }
+      .sev-bar-fill  { height:100%; border-radius:4px; transition:width .3s, background .3s; }
+    </style>
+</head>
+<body>
+<canvas id="safety-canvas"></canvas>
+<div id="toast-wrap" class="toast-wrap"></div>
+<div id="srv-toast" th:if="${toast != null}" th:attr="data-msg=${toast}" style="display:none"></div>
+
+<div class="shell">
+  <th:block th:replace="~{fragments/sidebar :: sidebar}"/>
+
+  <div class="main">
+    <th:block th:replace="~{fragments/topbar :: topbar}"/>
+
+    <div class="page-body">
+
+      <!-- Stats strip -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+        <div class="stat-card teal">
+          <div class="stat-ico">📣</div>
+          <div class="stat-value" th:text="${totalEvents}">0</div>
+          <div class="stat-lbl" th:text="${lang=='ar'}?'إجمالي الفعاليات':'Total Events'"></div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-ico">📚</div>
+          <div class="stat-value" th:text="${totalTraining}">0</div>
+          <div class="stat-lbl" th:text="${lang=='ar'}?'فعاليات تدريبية':'Training Events'"></div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-ico">⚠️</div>
+          <div class="stat-value" th:text="${totalWarnings}">0</div>
+          <div class="stat-lbl" th:text="${lang=='ar'}?'تحذيرات نشطة':'Active Warnings'"></div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-ico">🔴</div>
+          <div class="stat-value" th:text="${totalCritical}">0</div>
+          <div class="stat-lbl" th:text="${lang=='ar'}?'تحذيرات حرجة':'Critical Warnings'"></div>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <div class="section-hdr" style="margin-bottom:16px">
+        <div class="section-hdr-left">
+          <div class="section-title" th:text="${lang=='ar'}?'📣 الفعاليات والتحذيرات':'📣 Events &amp; Warnings'"></div>
+          <div class="section-sub" th:text="${lang=='ar'}?'نشر وإدارة الفعاليات التدريبية وتحذيرات السلامة':'Publish and manage training events and safety warnings'"></div>
+        </div>
+        <button class="btn btn-warning" onclick="openPublishModal()">
+          ＋ <span th:text="${lang=='ar'}?'نشر فعالية':'Publish Event'"></span>
+        </button>
+      </div>
+
+      <!-- Filter chips -->
+      <div class="ev-filter-bar">
+        <a th:href="@{/events(lang=${lang},theme=${theme},filter='ALL')}"
+           th:class="'ev-chip' + (${filter=='ALL'}?' active-all':'')">
+          <span th:text="${lang=='ar'}?'الكل':'All'"></span>
+          (<span th:text="${totalEvents}"></span>)
+        </a>
+        <a th:href="@{/events(lang=${lang},theme=${theme},filter='TRAINING')}"
+           th:class="'ev-chip' + (${filter=='TRAINING'}?' active-training':'')">
+          📚 <span th:text="${lang=='ar'}?'تدريب':'Training'"></span>
+          (<span th:text="${totalTraining}"></span>)
+        </a>
+        <a th:href="@{/events(lang=${lang},theme=${theme},filter='WARNING')}"
+           th:class="'ev-chip' + (${filter=='WARNING'}?' active-warning':'')">
+          ⚠️ <span th:text="${lang=='ar'}?'تحذيرات':'Warnings'"></span>
+          (<span th:text="${totalWarnings}"></span>)
+        </a>
+      </div>
+
+      <!-- Events grid -->
+      <div th:if="${events.isEmpty()}" class="empty">
+        <div class="empty-ico">📭</div>
+        <div class="empty-txt" th:text="${lang=='ar'}?'لا توجد فعاليات بعد. اضغط نشر فعالية للبدء.':'No events yet. Click Publish Event to get started.'"></div>
+      </div>
+
+      <div th:unless="${events.isEmpty()}" class="events-grid">
+        <div th:each="ev : ${events}" class="ev-card">
+          <!-- colored top stripe -->
+          <div th:if="${ev.warning}"
+               th:class="'ev-stripe ' + (${ev.severity==1}?'sev-low':(${ev.severity==2}?'sev-mid':(${ev.severity==3}?'sev-high':'sev-critical')))"></div>
+          <div th:unless="${ev.warning}" class="ev-stripe type-training"></div>
+
+          <div class="ev-body">
+            <div class="ev-type-row">
+              <span th:class="'ev-badge ' + (${ev.warning}?'ev-badge-warning':'ev-badge-training')"
+                    th:text="${ev.warning}?(${lang=='ar'}?'⚠️ تحذير':'⚠️ Warning'):(${lang=='ar'}?'📚 تدريب':'📚 Training')"></span>
+              <span class="ev-date" th:text="${ev.eventDate}"></span>
+            </div>
+            <div class="ev-title" th:text="${ev.title}"></div>
+            <div class="ev-desc" th:if="${ev.description != null and !ev.description.isEmpty()}" th:text="${ev.description}"></div>
+            <div class="ev-dept" th:if="${ev.targetDepartment != null and !ev.targetDepartment.isEmpty()}"
+                 th:text="'🏢 ' + ${ev.targetDepartment}"></div>
+
+            <!-- Warning extra info -->
+            <div th:if="${ev.warning}">
+              <div class="warn-box" th:if="${ev.warningMessage != null and !ev.warningMessage.isEmpty()}">
+                <div class="warn-box-label" th:text="${lang=='ar'}?'⚠ رسالة التحذير':'⚠ Warning Message'"></div>
+                <div class="warn-box-text" th:text="${ev.warningMessage}"></div>
+              </div>
+              <div class="sev-row">
+                <span class="sev-label" th:text="${lang=='ar'}?'الخطورة:':'Severity:'"></span>
+                <div class="sev-track">
+                  <div class="sev-fill"
+                       th:style="'width:'+${ev.severityPct}+'%;background:'+${ev.severityColor}"></div>
+                </div>
+                <span th:class="'sev-tag ' + (${ev.severity==1}?'lv1':(${ev.severity==2}?'lv2':(${ev.severity==3}?'lv3':'lv4')))"
+                      th:text="${ev.severityLabel}"></span>
+              </div>
+            </div>
+
+            <div class="ev-footer">
+              <button class="btn btn-outline btn-sm"
+                      th:data-id="${ev.id}"
+                      th:data-type="${ev.eventType}"
+                      th:data-title="${ev.title}"
+                      th:data-desc="${ev.description}"
+                      th:data-date="${ev.eventDate}"
+                      th:data-dept="${ev.targetDepartment}"
+                      th:data-warnmsg="${ev.warningMessage}"
+                      th:data-severity="${ev.severity}"
+                      onclick="openEditModal(this)">
+                ✏️ <span th:text="${lang=='ar'}?'تعديل':'Edit'"></span>
+              </button>
+              <form th:action="@{/events/{id}/delete(id=${ev.id})}" method="post" style="display:inline"
+                    onsubmit="return confirm(this.dataset.confirm)"
+                    th:attr="data-confirm=${lang=='ar'}?'هل أنت متأكد من حذف هذه الفعالية؟':'Are you sure you want to delete this event?'">
+                <input type="hidden" name="lang"  th:value="${lang}"/>
+                <input type="hidden" name="theme" th:value="${theme}"/>
+                <button class="btn btn-danger btn-sm" type="submit">
+                  🗑️ <span th:text="${lang=='ar'}?'حذف':'Delete'"></span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ Publish / Edit Modal ══ -->
+<div class="modal-backdrop hidden" id="publish-modal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr">
+      <span class="modal-title" id="modal-title-txt" th:text="${lang=='ar'}?'نشر فعالية جديدة':'Publish New Event'"></span>
+      <button class="modal-close" onclick="closePublishModal()">✕</button>
+    </div>
+    <form id="event-form" method="post" th:action="@{/events/create}">
+      <input type="hidden" name="lang"  th:value="${lang}"/>
+      <input type="hidden" name="theme" th:value="${theme}"/>
+      <input type="hidden" name="_method_override" id="form-method-override" value="create"/>
+      <!-- hidden id for edit -->
+      <input type="hidden" name="eventId" id="event-id-field" value=""/>
+
+      <div class="modal-body">
+        <!-- Type toggle -->
+        <div class="form-label" th:text="${lang=='ar'}?'نوع الفعالية':'Event Type'"></div>
+        <div class="ev-type-row-modal" style="margin-bottom:14px">
+          <div class="ev-type-opt sel-training" id="opt-training" onclick="selectEvType('training')">
+            📚 <span th:text="${lang=='ar'}?'تدريب':'Training'"></span>
+          </div>
+          <div class="ev-type-opt" id="opt-warning" onclick="selectEvType('warning')">
+            ⚠️ <span th:text="${lang=='ar'}?'تحذير':'Warning'"></span>
+          </div>
+        </div>
+        <input type="hidden" name="eventType" id="ev-type-hidden" value="TRAINING"/>
+
+        <div class="form-group">
+          <label class="form-label" th:text="${lang=='ar'}?'العنوان *':'Title *'"></label>
+          <input class="form-ctrl" name="title" id="ev-title" required
+                 th:placeholder="${lang=='ar'}?'مثال: دورة السلامة الكيميائية':'e.g. Chemical Safety Course'"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" th:text="${lang=='ar'}?'الوصف':'Description'"></label>
+          <textarea class="form-ctrl" name="description" id="ev-desc" rows="3"
+                    th:placeholder="${lang=='ar'}?'وصف مختصر...':'Brief description...'"></textarea>
+        </div>
+        <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label class="form-label" th:text="${lang=='ar'}?'التاريخ':'Date'"></label>
+            <input type="date" class="form-ctrl" name="eventDate" id="ev-date"/>
+          </div>
+          <div>
+            <label class="form-label" th:text="${lang=='ar'}?'القسم المستهدف':'Target Department'"></label>
+            <select class="form-ctrl" name="targetDepartment" id="ev-dept">
+              <option value="" th:text="${lang=='ar'}?'جميع الأقسام':'All Departments'"></option>
+              <option value="Manufacturing"  th:text="${lang=='ar'}?'التصنيع':'Manufacturing'"></option>
+              <option value="Logistics"      th:text="${lang=='ar'}?'اللوجستيات':'Logistics'"></option>
+              <option value="Maintenance"    th:text="${lang=='ar'}?'الصيانة':'Maintenance'"></option>
+              <option value="HR"             th:text="${lang=='ar'}?'الموارد البشرية':'HR'"></option>
+              <option value="Operations"     th:text="${lang=='ar'}?'العمليات':'Operations'"></option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Warning-only fields -->
+        <div class="warn-extra" id="warn-extra">
+          <div class="form-group">
+            <label class="form-label" th:text="${lang=='ar'}?'رسالة التحذير التفصيلية':'Detailed Warning Message'"></label>
+            <textarea class="form-ctrl" name="warningMessage" id="ev-warn-msg" rows="3"
+                      th:placeholder="${lang=='ar'}?'تعليمات السلامة التفصيلية...':'Detailed safety instructions...'"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" th:text="${lang=='ar'}?'مستوى الخطورة':'Severity Level'"></label>
+            <div style="display:flex;gap:8px;margin-bottom:6px">
+              <span th:each="n : ${#numbers.sequence(1,4)}"
+                    th:data-val="${n}"
+                    th:class="'sev-tag ' + (${n==1}?'lv1':(${n==2}?'lv2':(${n==3}?'lv3':'lv4')))"
+                    th:text="${n==1}?(${lang=='ar'}?'منخفض':'Low'):(${n==2}?(${lang=='ar'}?'متوسط':'Medium'):(${n==3}?(${lang=='ar'}?'عالٍ':'High'):(${lang=='ar'}?'حرج':'Critical')))"
+                    style="cursor:pointer;padding:5px 12px"
+                    onclick="selectSeverity(+this.dataset.val)"></span>
+            </div>
+            <input type="hidden" name="severity" id="ev-severity-hidden" value="2"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closePublishModal()"
+                th:text="${lang=='ar'}?'إلغاء':'Cancel'"></button>
+        <button type="submit" class="btn btn-primary" id="submit-btn"
+                th:text="${lang=='ar'}?'🚀 نشر الآن':'🚀 Publish Now'"></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/modals :: modals}"/>
+<script th:src="@{/js/app.js}"></script>
+<script th:inline="javascript">
+/*<![CDATA[*/
+const LANG  = /*[[${lang}]]*/ 'en';
+const THEME = /*[[${theme}]]*/ 'light';
+
+// ── Type toggle ──
+let currentEvType = 'training';
+function selectEvType(type) {
+  currentEvType = type;
+  document.getElementById('ev-type-hidden').value = type.toUpperCase();
+  document.getElementById('opt-training').className = 'ev-type-opt' + (type==='training' ? ' sel-training' : '');
+  document.getElementById('opt-warning').className  = 'ev-type-opt' + (type==='warning'  ? ' sel-warning'  : '');
+  const extra = document.getElementById('warn-extra');
+  if (type === 'warning') extra.classList.add('visible');
+  else extra.classList.remove('visible');
+}
+
+// ── Severity ──
+function selectSeverity(val) {
+  document.getElementById('ev-severity-hidden').value = val;
+  document.querySelectorAll('.sev-tag[data-val]').forEach(el => {
+    el.style.opacity = (+el.dataset.val === val) ? '1' : '0.4';
+    el.style.transform = (+el.dataset.val === val) ? 'scale(1.1)' : 'scale(1)';
+  });
+}
+
+// ── Publish modal ──
+function openPublishModal() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('ev-date').value = today;
+  document.getElementById('ev-title').value = '';
+  document.getElementById('ev-desc').value  = '';
+  document.getElementById('ev-warn-msg').value = '';
+  document.getElementById('ev-severity-hidden').value = '2';
+  document.getElementById('event-id-field').value = '';
+  document.getElementById('event-form').action = '/events/create';
+  document.getElementById('modal-title-txt').textContent = LANG==='ar' ? 'نشر فعالية جديدة' : 'Publish New Event';
+  document.getElementById('submit-btn').textContent = LANG==='ar' ? '🚀 نشر الآن' : '🚀 Publish Now';
+  selectEvType('training');
+  selectSeverity(2);
+  document.getElementById('publish-modal').classList.remove('hidden');
+}
+
+function closePublishModal() {
+  document.getElementById('publish-modal').classList.add('hidden');
+}
+
+document.getElementById('publish-modal').addEventListener('click', function(e) {
+  if (e.target === this) closePublishModal();
+});
+
+// ── Edit modal ──
+function openEditModal(btn) {
+  const id   = btn.dataset.id;
+  const type = (btn.dataset.type || 'TRAINING').toLowerCase();
+  document.getElementById('event-id-field').value = id;
+  document.getElementById('event-form').action = '/events/' + id + '/update';
+  document.getElementById('modal-title-txt').textContent = LANG==='ar' ? 'تعديل الفعالية' : 'Edit Event';
+  document.getElementById('submit-btn').textContent = LANG==='ar' ? '💾 حفظ التعديلات' : '💾 Save Changes';
+  document.getElementById('ev-title').value = btn.dataset.title || '';
+  document.getElementById('ev-desc').value  = btn.dataset.desc  || '';
+  document.getElementById('ev-date').value  = btn.dataset.date  || '';
+  const deptSel = document.getElementById('ev-dept');
+  if (deptSel) { [...deptSel.options].forEach(o => o.selected = o.value === (btn.dataset.dept || '')); }
+  document.getElementById('ev-warn-msg').value = btn.dataset.warnmsg || '';
+  selectEvType(type);
+  selectSeverity(parseInt(btn.dataset.severity) || 2);
+  document.getElementById('publish-modal').classList.remove('hidden');
+}
+/*]]>*/
+</script>
+</body>
+</html>

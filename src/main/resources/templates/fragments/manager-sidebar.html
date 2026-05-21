@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="manager-sidebar" class="mgr-sb">
+  <div class="mgr-sb-brand">
+    <div class="brand-orb"></div>
+    <div class="brand-text">
+      <div class="brand-name" th:text="${lang=='ar'}?'سيف جارد':'SafeGuard'"></div>
+      <div class="brand-sub" th:text="${lang=='ar'}?'لوحة المدير':'Manager Panel'"></div>
+    </div>
+  </div>
+
+  <nav class="mgr-nav">
+    <div class="nav-group-label" th:text="${lang=='ar'}?'الرئيسية':'Main'"></div>
+
+    <a th:href="@{/manager/dashboard(lang=${lang},theme=${theme},tab='overview')}"
+       class="mgr-nav-item" th:classappend="${tab==null||tab=='overview'}?' active':''">
+      <div class="nav-item-icon">📊</div>
+      <span th:text="${lang=='ar'}?'نظرة عامة':'Overview'"></span>
+      <div class="nav-glow"></div>
+    </a>
+
+    <div class="nav-group-label" th:text="${lang=='ar'}?'الإدارة':'Management'"></div>
+
+    <a th:href="@{/manager/dashboard(lang=${lang},theme=${theme},tab='employees')}"
+       class="mgr-nav-item" th:classappend="${tab=='employees'}?' active':''">
+      <div class="nav-item-icon">👷</div>
+      <span th:text="${lang=='ar'}?'الموظفون':'Employees'"></span>
+      <div class="nav-glow"></div>
+    </a>
+
+    <a th:href="@{/manager/dashboard(lang=${lang},theme=${theme},tab='departments')}"
+       class="mgr-nav-item" th:classappend="${tab=='departments'}?' active':''">
+      <div class="nav-item-icon">🏢</div>
+      <span th:text="${lang=='ar'}?'الأقسام':'Departments'"></span>
+      <div class="nav-glow"></div>
+    </a>
+
+    <div class="nav-group-label" th:text="${lang=='ar'}?'النظام':'System'"></div>
+
+    <a th:href="@{/logout}" class="mgr-nav-item">
+      <div class="nav-item-icon">🚪</div>
+      <span th:text="${lang=='ar'}?'تسجيل الخروج':'Logout'"></span>
+      <div class="nav-glow"></div>
+    </a>
+  </nav>
+
+  <div class="mgr-sb-footer">
+    <div class="sb-orb-decoration"></div>
+    <span th:text="${lang=='ar'}?'نظام السلامة المهنية':'Workplace Safety System'"></span>
+  </div>
+</aside>
+</body>
+</html>

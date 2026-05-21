@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:attr="data-theme=${theme}, dir=${lang == 'ar' ? 'rtl' : 'ltr'}">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${lang=='ar'}?'الدورات — سيف هاب':'Courses — SafetyHub'">Courses</title>
+  <link rel="icon" href="data:,"/>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Courses page local overrides ── */
+    .courses-wrap { padding: 32px 36px; }
+
+    /* ── Hero Banner ── */
+    .c-hero {
+      position: relative;
+      background: linear-gradient(135deg, #0c1525 0%, #0f2a4a 50%, #0c1525 100%);
+      border-radius: 20px;
+      padding: 52px 48px;
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+    .c-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 80% at 80% 50%, rgba(59,130,246,0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 20% 30%, rgba(16,185,129,0.10) 0%, transparent 60%);
+    }
+    .c-hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: gridScroll 20s linear infinite;
+    }
+    @keyframes gridScroll {
+      0%   { background-position: 0 0; }
+      100% { background-position: 40px 40px; }
+    }
+    .c-hero-content { position: relative; z-index: 2; }
+    .c-hero-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.3);
+      color: #93c5fd;
+      font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+      padding: 6px 14px; border-radius: 999px;
+      margin-bottom: 16px;
+    }
+    .c-hero-tag span { width: 6px; height: 6px; background: #3b82f6; border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.4); } }
+    .c-hero h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 64px; letter-spacing: 3px;
+      color: #fff; line-height: 1;
+      margin-bottom: 12px;
+    }
+    .c-hero h1 em { color: #3b82f6; font-style: normal; }
+    .c-hero p { color: rgba(255,255,255,0.6); font-size: 15px; max-width: 500px; line-height: 1.7; }
+    .c-hero-stats {
+      display: flex; gap: 32px; margin-top: 28px;
+    }
+    .c-hero-stat { display: flex; flex-direction: column; }
+    .c-hero-stat strong { font-family: 'JetBrains Mono', monospace; font-size: 26px; color: #fff; }
+    .c-hero-stat span { font-size: 11px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 1px; }
+    .c-hero-badge {
+      position: absolute; right: 48px; top: 50%; transform: translateY(-50%);
+      width: 160px; height: 160px;
+      background: conic-gradient(#3b82f6 0deg, #10b981 120deg, #f59e0b 240deg, #3b82f6 360deg);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      animation: rotateBadge 12s linear infinite;
+      box-shadow: 0 0 60px rgba(59,130,246,0.4);
+    }
+    .c-hero-badge::after {
+      content: '🛡';
+      position: absolute;
+      font-size: 52px;
+      animation: rotateBadge 12s linear infinite reverse;
+    }
+    @keyframes rotateBadge { to { transform: translateY(-50%) rotate(360deg); } }
+
+    /* ── Filter Bar ── */
+    .c-filter {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 28px; flex-wrap: wrap;
+    }
+    .c-filter-btn {
+      padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 500;
+      border: 1.5px solid var(--bdr);
+      background: var(--surf); color: var(--txt2);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .c-filter-btn:hover, .c-filter-btn.active {
+      background: #3b82f6; border-color: #3b82f6; color: #fff;
+    }
+    .c-search {
+      margin-left: auto; position: relative;
+    }
+    .c-search input {
+      background: var(--surf); border: 1.5px solid var(--bdr);
+      border-radius: 10px; padding: 8px 14px 8px 36px;
+      font-size: 13px; color: var(--txt); outline: none;
+      width: 220px; transition: border-color 0.2s;
+    }
+    .c-search input:focus { border-color: #3b82f6; }
+    .c-search::before {
+      content: '🔍'; position: absolute; left: 10px; top: 50%;
+      transform: translateY(-50%); font-size: 13px; pointer-events: none;
+    }
+
+    /* ── Course Grid ── */
+    .c-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    /* ── Course Card ── */
+    .c-card {
+      background: var(--surf);
+      border: 1.5px solid var(--bdr);
+      border-radius: 18px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s;
+      animation: cardIn 0.5s cubic-bezier(.34,1.2,.64,1) both;
+    }
+    .c-card:nth-child(1) { animation-delay: 0.05s; }
+    .c-card:nth-child(2) { animation-delay: 0.10s; }
+    .c-card:nth-child(3) { animation-delay: 0.15s; }
+    .c-card:nth-child(4) { animation-delay: 0.20s; }
+    .c-card:nth-child(5) { animation-delay: 0.25s; }
+    .c-card:nth-child(6) { animation-delay: 0.30s; }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .c-card:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    }
+
+    /* Card thumbnail */
+    .c-thumb {
+      position: relative; height: 160px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .c-thumb-icon { font-size: 56px; position: relative; z-index: 2; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }
+    .c-thumb-bg {
+      position: absolute; inset: 0;
+      transition: transform 0.4s;
+    }
+    .c-card:hover .c-thumb-bg { transform: scale(1.08); }
+    .c-thumb-glow {
+      position: absolute; width: 100px; height: 100px; border-radius: 50%;
+      filter: blur(30px); opacity: 0.6;
+    }
+
+    /* Card colors */
+    .c-card[data-cat="fire"]    .c-thumb-bg { background: linear-gradient(135deg, #1a0a00, #7c1d06); }
+    .c-card[data-cat="fire"]    .c-thumb-glow { background: #ef4444; }
+    .c-card[data-cat="chem"]    .c-thumb-bg { background: linear-gradient(135deg, #001a1a, #065f46); }
+    .c-card[data-cat="chem"]    .c-thumb-glow { background: #10b981; }
+    .c-card[data-cat="first"]   .c-thumb-bg { background: linear-gradient(135deg, #0a001a, #4c1d95); }
+    .c-card[data-cat="first"]   .c-thumb-glow { background: #8b5cf6; }
+    .c-card[data-cat="ppe"]     .c-thumb-bg { background: linear-gradient(135deg, #001224, #1e3a8a); }
+    .c-card[data-cat="ppe"]     .c-thumb-glow { background: #3b82f6; }
+    .c-card[data-cat="hazard"]  .c-thumb-bg { background: linear-gradient(135deg, #1a1200, #78350f); }
+    .c-card[data-cat="hazard"]  .c-thumb-glow { background: #f59e0b; }
+    .c-card[data-cat="evac"]    .c-thumb-bg { background: linear-gradient(135deg, #000d1a, #0c4a6e); }
+    .c-card[data-cat="evac"]    .c-thumb-glow { background: #0ea5e9; }
+
+    .c-badge {
+      position: absolute; top: 12px; right: 12px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 999px; z-index: 3;
+    }
+    .badge-new    { background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.4); }
+    .badge-hot    { background: rgba(239,68,68,0.2);  color: #ef4444; border: 1px solid rgba(239,68,68,0.4); }
+    .badge-core   { background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4); }
+    .badge-adv    { background: rgba(139,92,246,0.2); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.4); }
+
+    /* Card body */
+    .c-body { padding: 20px; }
+    .c-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .c-cat-tag {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--txt2);
+    }
+    .c-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+    .c-level { font-size: 10px; color: var(--muted); }
+    .c-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px; font-weight: 700;
+      color: var(--txt); margin-bottom: 8px; line-height: 1.3;
+    }
+    .c-desc { font-size: 12.5px; color: var(--txt2); line-height: 1.6; margin-bottom: 16px; }
+
+    /* Progress bar */
+    .c-progress { margin-bottom: 16px; }
+    .c-progress-label { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .c-progress-label span { font-size: 11px; color: var(--muted); }
+    .c-progress-label strong { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--txt2); }
+    .c-progress-bar { height: 4px; background: var(--bdr); border-radius: 99px; overflow: hidden; }
+    .c-progress-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      transition: width 1s cubic-bezier(.4,0,.2,1);
+      width: 0%;
+    }
+
+    /* Card footer */
+    .c-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 14px; border-top: 1px solid var(--bdr);
+    }
+    .c-info { display: flex; gap: 12px; }
+    .c-info-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+    .c-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: #3b82f6; color: #fff;
+      font-size: 12px; font-weight: 600;
+      padding: 8px 16px; border-radius: 10px;
+      border: none; cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+    }
+    .c-btn:hover { background: #2563eb; transform: scale(1.04); }
+    .c-btn.completed { background: #10b981; }
+    .c-btn.locked { background: var(--bdr); color: var(--muted); cursor: not-allowed; }
+
+    /* ── Featured spotlight ── */
+    .c-featured {
+      grid-column: 1 / -1;
+      display: grid; grid-template-columns: 1fr 1fr;
+      background: linear-gradient(135deg, #0c1525, #0f2a4a);
+      border: 1.5px solid rgba(59,130,246,0.2);
+      border-radius: 20px; overflow: hidden;
+      animation: cardIn 0.4s ease both;
+    }
+    .c-featured .c-thumb { height: 100%; min-height: 220px; }
+    .c-featured .c-body { padding: 32px; display: flex; flex-direction: column; justify-content: center; }
+    .c-featured .c-title { font-size: 22px; color: #fff; }
+    .c-featured .c-desc { color: rgba(255,255,255,0.6); }
+    .c-featured .c-cat-tag { color: #93c5fd; }
+    .c-featured .c-progress-label span { color: rgba(255,255,255,0.4); }
+    .c-featured .c-progress-label strong { color: rgba(255,255,255,0.7); }
+    .c-featured .c-progress-bar { background: rgba(255,255,255,0.1); }
+    .c-featured .c-footer { border-top-color: rgba(255,255,255,0.1); }
+    .c-featured .c-info-item { color: rgba(255,255,255,0.4); }
+
+    /* ── Section header ── */
+    .c-section-head {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 20px; margin-top: 36px;
+    }
+    .c-section-head h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px; letter-spacing: 2px; color: var(--txt);
+    }
+    .c-section-head .c-line {
+      flex: 1; height: 1px; background: var(--bdr);
+    }
+    .c-section-head .c-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--muted);
+      background: var(--surf2); padding: 3px 10px; border-radius: 999px;
+      border: 1px solid var(--bdr);
+    }
+
+    /* RTL fixes */
+    [dir="rtl"] .c-search { margin-left: 0; margin-right: auto; }
+    [dir="rtl"] .c-search::before { left: auto; right: 10px; padding-left: 0; padding-right: 0; }
+    [dir="rtl"] .c-search input { padding: 8px 36px 8px 14px; }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <th:block th:replace="~{fragments/sidebar :: sidebar}"/>
+  <div class="main">
+    <th:block th:replace="~{fragments/topbar :: topbar}"/>
+    <div class="page-body courses-wrap">
+
+      <!-- Hero -->
+      <div class="c-hero">
+        <div class="c-hero-grid"></div>
+        <div class="c-hero-content">
+          <div class="c-hero-tag">
+            <span></span>
+            <span th:text="${lang=='ar'}?'منصة التعلم':'Learning Platform'"></span>
+          </div>
+          <h1 th:if="${lang!='ar'}">SAFETY <em>COURSES</em></h1>
+          <h1 th:if="${lang=='ar'}" style="font-family:'Noto Kufi Arabic',sans-serif;font-size:42px;letter-spacing:0">دورات <em>السلامة</em></h1>
+          <p th:text="${lang=='ar'}?'اكتسب المهارات والشهادات التي تحميك وتحمي فريقك في بيئة العمل. تعلم بالسرعة التي تناسبك.':'Build the skills and certifications that protect you and your team. Learn at your own pace through interactive modules.'"></p>
+          <div class="c-hero-stats">
+            <div class="c-hero-stat">
+              <strong>06</strong>
+              <span th:text="${lang=='ar'}?'دورة متاحة':'Courses'"></span>
+            </div>
+            <div class="c-hero-stat">
+              <strong>24h</strong>
+              <span th:text="${lang=='ar'}?'إجمالي المحتوى':'Content'"></span>
+            </div>
+            <div class="c-hero-stat">
+              <strong>12</strong>
+              <span th:text="${lang=='ar'}?'شهادة':'Certificates'"></span>
+            </div>
+          </div>
+        </div>
+        <div class="c-hero-badge"></div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="c-filter">
+        <button class="c-filter-btn active" onclick="filterCards('all', this)"
+                th:text="${lang=='ar'}?'الكل':'All'"></button>
+        <button class="c-filter-btn" onclick="filterCards('fire', this)"
+                th:text="${lang=='ar'}?'إطفاء الحرائق':'Fire Safety'"></button>
+        <button class="c-filter-btn" onclick="filterCards('chem', this)"
+                th:text="${lang=='ar'}?'المواد الكيميائية':'Chemical'"></button>
+        <button class="c-filter-btn" onclick="filterCards('first', this)"
+                th:text="${lang=='ar'}?'الإسعافات الأولية':'First Aid'"></button>
+        <button class="c-filter-btn" onclick="filterCards('ppe', this)"
+                th:text="${lang=='ar'}?'معدات الحماية':'PPE'"></button>
+        <div class="c-search">
+          <input type="text" id="courseSearch"
+                 th:placeholder="${lang=='ar'}?'ابحث عن دورة...':'Search courses...'"
+                 oninput="searchCards(this.value)"/>
+        </div>
+      </div>
+
+      <!-- Featured Course -->
+      <div class="c-section-head">
+        <h2 th:text="${lang=='ar'}?'مميز':'FEATURED'"></h2>
+        <div class="c-line"></div>
+        <span class="c-count">01</span>
+      </div>
+      <div class="c-grid">
+        <div class="c-card c-featured" data-cat="fire" data-title="Fire Safety Fundamentals">
+          <div class="c-thumb">
+            <div class="c-thumb-bg"></div>
+            <div class="c-thumb-glow"></div>
+            <div class="c-thumb-icon">🔥</div>
+          </div>
+          <div class="c-body">
+            <div class="c-meta">
+              <span class="c-cat-tag" th:text="${lang=='ar'}?'سلامة الحرائق':'Fire Safety'"></span>
+              <div class="c-dot"></div>
+              <span class="c-level" th:text="${lang=='ar'}?'مبتدئ':'Beginner'"></span>
+              <div class="c-dot"></div>
+              <span class="c-level">4h 30m</span>
+            </div>
+            <div class="c-title" th:text="${lang=='ar'}?'أساسيات سلامة الحرائق':'Fire Safety Fundamentals'"></div>
+            <div class="c-desc" th:text="${lang=='ar'}?'تعرف على كيفية منع الحرائق والاستجابة لها. يشمل تشغيل طفاية الحريق وخطط الإخلاء وبروتوكولات الطوارئ.':'Learn how to prevent and respond to fires. Covers extinguisher operation, evacuation plans, and emergency protocols essential for every worker.'"></div>
+            <div class="c-progress">
+              <div class="c-progress-label">
+                <span th:text="${lang=='ar'}?'التقدم':'Progress'"></span>
+                <strong class="prog-val">0%</strong>
+              </div>
+              <div class="c-progress-bar"><div class="c-progress-fill" data-progress="35"></div></div>
+            </div>
+            <div class="c-footer">
+              <div class="c-info">
+                <div class="c-info-item">📹 <span>12 videos</span></div>
+                <div class="c-info-item">📝 <span>3 quizzes</span></div>
+                <div class="c-info-item">🏆 <span th:text="${lang=='ar'}?'شهادة':'Certificate'"></span></div>
+              </div>
+              <a href="/training" class="c-btn">
+                <span th:text="${lang=='ar'}?'استمر':'Continue'"></span> →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Courses -->
+      <div class="c-section-head" style="margin-top:36px">
+        <h2 th:text="${lang=='ar'}?'جميع الدورات':'ALL COURSES'"></h2>
+        <div class="c-line"></div>
+        <span class="c-count">05</span>
+      </div>
+      <div class="c-grid" id="courseGrid">
+
+        <!-- Card 1 - Chemical -->
+        <div class="c-card" data-cat="chem" data-title="Chemical Safety & Hazmat Handling">
+          <span class="c-badge badge-core" th:text="${lang=='ar'}?'أساسي':'Core'"></span>
+          <div class="c-thumb">
+            <div class="c-thumb-bg"></div>
+            <div class="c-thumb-glow"></div>
+            <div class="c-thumb-icon">⚗️</div>
+          </div>
+          <div class="c-body">
+            <div class="c-meta">
+              <span class="c-cat-tag" th:text="${lang=='ar'}?'كيميائي':'Chemical'"></span>
+              <div class="c-dot"></div>
+              <span class="c-level" th:text="${lang=='ar'}?'متوسط':'Intermediate'"></span>
+            </div>
+            <div class="c-title" th:text="${lang=='ar'}?'السلامة الكيميائية والمواد الخطرة':'Chemical Safety &amp; Hazmat Handling'"></div>
+            <div class="c-desc" th:text="${lang=='ar'}?'إجراءات التعامل الآمن مع المواد الكيميائية الخطرة والمواد السامة.':'Safe handling procedures for hazardous chemicals, toxic substances, and spill response.'"></div>
+            <div class="c-progress">
+              <div class="c-progress-label">
+                <span th:text="${lang=='ar'}?'التقدم':'Progress'"></span>
+                <strong class="prog-val">0%</strong>
+              </div>
+              <div class="c-progress-bar"><div class="c-progress-fill" data-progress="0"></div></div>
+            </div>
+            <div class="c-footer">
+              <div class="c-info">
+                <div class="c-info-item">📹 <span>8 videos</span></div>
+                <div class="c-info-item">⏱ <span>3h 15m</span></div>
+              </div>
+              <a href="/training" class="c-btn" th:text="${lang=='ar'}?'ابدأ':'Start'"></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 - First Aid -->
+        <div class="c-card" data-cat="first" data-title="First Aid & Emergency Response">
+          <span class="c-badge badge-hot" th:text="${lang=='ar'}?'رائج':'Hot'"></span>
+          <div class="c-thumb">
+            <div class="c-thumb-bg"></div>
+            <div class="c-thumb-glow"></div>
+            <div class="c-thumb-icon">🩺</div>
+          </div>
+          <div class="c-body">
+            <div class="c-meta">
+              <span class="c-cat-tag" th:text="${lang=='ar'}?'إسعافات أولية':'First Aid'"></span>
+              <div class="c-dot"></div>
+              <span class="c-level" th:text="${lang=='ar'}?'مبتدئ':'Beginner'"></span>
+            </div>
+            <div class="c-title" th:text="${lang=='ar'}?'الإسعافات الأولية والاستجابة للطوارئ':'First Aid &amp; Emergency Response'"></div>
+            <div class="c-desc" th:text="${lang=='ar'}?'تقنيات الإسعافات الأولية الأساسية بما في ذلك الإنعاش القلبي الرئوي وعلاج الجروح.':'Essential first aid techniques including CPR, wound treatment, and emergency escalation procedures.'"></div>
+            <div class="c-progress">
+              <div class="c-progress-label">
+                <span th:text="${lang=='ar'}?'التقدم':'Progress'"></span>
+                <strong class="prog-val">0%</strong>
+              </div>
+              <div class="c-progress-bar"><div class="c-progress-fill" data-progress="60"></div></div>
+            </div>
+            <div class="c-footer">
+              <div class="c-info">
+                <div class="c-info-item">📹 <span>10 videos</span></div>
+                <div class="c-info-item">⏱ <span>4h</span></div>
+              </div>
+              <a href="/training" class="c-btn" th:text="${lang=='ar'}?'استمر':'Continue'"></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 - PPE -->
+        <div class="c-card" data-cat="ppe" data-title="PPE Usage & Maintenance">
+          <span class="c-badge badge-new" th:text="${lang=='ar'}?'جديد':'New'"></span>
+          <div class="c-thumb">
+            <div class="c-thumb-bg"></div>
+            <div class="c-thumb-glow"></div>
+            <div class="c-thumb-icon">🦺</div>
+          </div>
+          <div class="c-body">
+            <div class="c-meta">
+              <span class="c-cat-tag" th:text="${lang=='ar'}?'معدات الوقاية':'PPE'"></span>
+              <div class="c-dot"></div>
+              <span class="c-level" th:text="${lang=='ar'}?'مبتدئ':'Beginner'"></span>
+            </div>
+            <div class="c-title" th:text="${lang=='ar'}?'استخدام معدات الوقاية الشخصية وصيانتها':'PPE Usage &amp; Maintenance'"></div>
+            <div class="c-desc" th:text="${lang=='ar'}?'اختيار معدات الحماية الشخصية المناسبة وارتدائها وصيانتها وفقًا لمعايير السلامة.':'Selecting, wearing, and maintaining personal protective equipment according to safety standards.'"></div>
+            <div class="c-progress">
+              <div class="c-progress-label">
+                <span th:text="${lang=='ar'}?'التقدم':'Progress'"></span>
+                <strong class="prog-val">0%</strong>
+              </div>
+              <div class="c-progress-bar"><div class="c-progress-fill" data-progress="0"></div></div>
+            </div>
+            <div class="c-footer">
+              <div class="c-info">
+                <div class="c-info-item">📹 <span>6 videos</span></div>
+                <div class="c-info-item">⏱ <span>2h 45m</span></div>
+              </div>
+              <a href="/training" class="c-btn" th:text="${lang=='ar'}?'ابدأ':'Start'"></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 - Hazard -->
+        <div class="c-card" data-cat="hazard" data-title="Hazard Identification & Risk Assessment">
+          <span class="c-badge badge-adv" th:text="${lang=='ar'}?'متقدم':'Advanced'"></span>
+          <div class="c-thumb">
+            <div class="c-thumb-bg"></div>
+            <div class="c-thumb-glow"></div>
+            <div class="c-thumb-icon">⚠️</div>
+          </div>
+          <div class="c-body">
+            <div class="c-meta">
+              <span class="c-cat-tag" th:text="${lang=='ar'}?'تقييم المخاطر':'Hazard'"></span>
+              <div class="c-dot"></div>
+              <span class="c-level" th:text="${lang=='ar'}?'متقدم':'Advanced'"></span>
+            </div>
+            <div class="c-title" th:text="${lang=='ar'}?'تحديد المخاطر وتقييم المخاطر':'Hazard ID &amp; Risk Assessment'"></div>
+            <div class="c-desc" th:text="${lang=='ar'}?'تعلم كيفية تحديد مخاطر مكان العمل وتقييمها والإبلاغ عنها باستخدام أطر التقييم الاحترافية.':'Learn to identify, assess, and report workplace hazards using professional risk assessment frameworks.'"></div>
+            <div class="c-progress">
+              <div class="c-progress-label">
+                <span th:text="${lang=='ar'}?'التقدم':'Progress'"></span>
+                <strong class="prog-val">0%</strong>
+              </div>
+              <div class="c-progress-bar"><div class="c-progress-fill" data-progress="0"></div></div>
+            </div>
+            <div class="c-footer">
+              <div class="c-info">
+                <div class="c-info-item">📹 <span>14 videos</span></div>
+                <div class="c-info-item">⏱ <span>5h</span></div>
+              </div>
+              <button class="c-btn locked">🔒 <span th:text="${lang=='ar'}?'مقفل':'Locked'"></span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 - Evacuation -->
+        <div class="c-card" data-cat="evac" data-title="Emergency Evacuation Procedures">
+          <span class="c-badge badge-core" th:text="${lang=='ar'}?'أساسي':'Core'"></span>
+          <div class="c-thumb">
+            <div class="c-thumb-bg"></div>
+            <div class="c-thumb-glow"></div>
+            <div class="c-thumb-icon">🚪</div>
+          </div>
+          <div class="c-body">
+            <div class="c-meta">
+              <span class="c-cat-tag" th:text="${lang=='ar'}?'إخلاء':'Evacuation'"></span>
+              <div class="c-dot"></div>
+              <span class="c-level" th:text="${lang=='ar'}?'مبتدئ':'Beginner'"></span>
+            </div>
+            <div class="c-title" th:text="${lang=='ar'}?'إجراءات الإخلاء في حالات الطوارئ':'Emergency Evacuation Procedures'"></div>
+            <div class="c-desc" th:text="${lang=='ar'}?'خطط الإخلاء ونقاط التجمع وأدوار الطوارئ لضمان الإخلاء الآمن في حالات الطوارئ.':'Evacuation plans, assembly points, and emergency roles to ensure safe and orderly building evacuation.'"></div>
+            <div class="c-progress">
+              <div class="c-progress-label">
+                <span th:text="${lang=='ar'}?'التقدم':'Progress'"></span>
+                <strong class="prog-val">0%</strong>
+              </div>
+              <div class="c-progress-bar"><div class="c-progress-fill" data-progress="100"></div></div>
+            </div>
+            <div class="c-footer">
+              <div class="c-info">
+                <div class="c-info-item">📹 <span>7 videos</span></div>
+                <div class="c-info-item">🏆 <span th:text="${lang=='ar'}?'مكتمل':'Completed'"></span></div>
+              </div>
+              <a href="/training" class="c-btn completed" th:text="${lang=='ar'}?'مراجعة':'Review'"></a>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end grid -->
+    </div><!-- end page-body -->
+  </div><!-- end main -->
+</div><!-- end shell -->
+
+<script th:src="@{/js/app.js}"></script>
+<script>
+  // ── Animate progress bars on load ──────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.c-progress-fill').forEach(bar => {
+        const target = bar.dataset.progress;
+        bar.style.width = target + '%';
+        const val = bar.closest('.c-progress').querySelector('.prog-val');
+        if (val) animateNum(val, 0, parseInt(target), 1000);
+      });
+    }, 300);
+  });
+
+  function animateNum(el, from, to, dur) {
+    const start = performance.now();
+    function step(now) {
+      const p = Math.min((now - start) / dur, 1);
+      el.textContent = Math.round(from + (to - from) * easeOut(p)) + '%';
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  // ── Filter ──────────────────────────────────────────────────
+  function filterCards(cat, btn) {
+    document.querySelectorAll('.c-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#courseGrid .c-card').forEach(card => {
+      const show = cat === 'all' || card.dataset.cat === cat;
+      card.style.display = show ? '' : 'none';
+    });
+  }
+
+  // ── Search ──────────────────────────────────────────────────
+  function searchCards(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('#courseGrid .c-card').forEach(card => {
+      const title = (card.dataset.title || '').toLowerCase();
+      card.style.display = title.includes(q) ? '' : 'none';
+    });
+  }
+</script>
+</body>
+</html>

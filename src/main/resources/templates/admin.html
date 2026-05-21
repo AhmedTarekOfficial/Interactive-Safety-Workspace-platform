@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" dir="ltr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Interactive Safety Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: rgba(18, 24, 38, 0.7);
+            --nav-bg: rgba(18, 24, 38, 0.85);
+            --text-main: #f8fafc;
+            --text-muted: #8b95a5;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.15);
+            --border: rgba(255, 255, 255, 0.08);
+            --font-family: 'Inter', sans-serif;
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --row-hover: rgba(255, 255, 255, 0.03);
+            --badge-bg: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f1f5f9;
+            --panel-bg: rgba(255, 255, 255, 0.8);
+            --nav-bg: rgba(255, 255, 255, 0.9);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary: #2563eb;
+            --primary-glow: rgba(37, 99, 235, 0.3);
+            --danger: #dc2626;
+            --danger-bg: rgba(220, 38, 38, 0.1);
+            --border: rgba(0, 0, 0, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.03);
+            --row-hover: rgba(0, 0, 0, 0.02);
+            --badge-bg: rgba(0, 0, 0, 0.05);
+        }
+
+        [dir="rtl"] { --font-family: 'Cairo', sans-serif; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+
+        body {
+            font-family: var(--font-family); background-color: var(--bg-color);
+            color: var(--text-main); min-height: 100vh; overflow-x: hidden; position: relative;
+        }
+
+        .bg-fx { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
+        [data-theme="dark"] .bg-fx {
+            background-image: radial-gradient(circle at 20% 40%, rgba(59, 130, 246, 0.08), transparent 40%),
+                              radial-gradient(circle at 80% 60%, rgba(59, 130, 246, 0.05), transparent 40%);
+        }
+        [data-theme="dark"] .stars {
+            width: 2px; height: 2px; background: transparent;
+            box-shadow: 100px 200px #fff, 300px 400px #fff, 500px 100px #fff, 800px 500px #fff, 1000px 200px #fff, 1200px 600px #fff, 400px 700px #fff, 600px 800px #fff, 200px 100px #fff, 900px 50px #fff, 1100px 400px #fff, 70px 800px #fff, 1300px 150px #fff, 750px 50px #fff;
+            opacity: 0.3; animation: twinkle 4s infinite alternate;
+        }
+        [data-theme="dark"] .grid-floor {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 35vh;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                              linear-gradient(to top, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px; transform: perspective(600px) rotateX(70deg);
+            transform-origin: bottom;
+            mask-image: linear-gradient(to top, rgba(0,0,0,1), transparent);
+            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1), transparent);
+        }
+        @keyframes twinkle { 0% { opacity: 0.1; } 100% { opacity: 0.6; } }
+
+        .app-container { padding: 30px 40px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .top-nav {
+            background: var(--nav-bg); border: 1px solid var(--border); border-radius: 30px;
+            padding: 6px; display: flex; gap: 5px; backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow-x: auto; max-width: calc(100vw - 200px);
+        }
+        .top-nav::-webkit-scrollbar { display: none; }
+        .nav-item {
+            padding: 10px 20px; border-radius: 24px; color: var(--text-muted); font-weight: 600;
+            font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px;
+            border: none; background: transparent; white-space: nowrap;
+        }
+        .nav-item i { font-size: 1.1rem; }
+        .nav-item.active { background: linear-gradient(135deg, var(--primary), #2563eb); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
+        .nav-item:hover:not(.active) { color: var(--text-main); }
+
+        .controls { display: flex; gap: 12px; }
+        .icon-btn {
+            background: var(--nav-bg); border: 1px solid var(--border); color: var(--text-muted);
+            width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 1.2rem; backdrop-filter: blur(10px);
+        }
+        .icon-btn:hover { color: var(--primary); border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); transform: scale(1.05); }
+
+        .main-panel {
+            background: var(--panel-bg); border: 1px solid var(--border); border-radius: 16px;
+            padding: 35px 40px; backdrop-filter: blur(16px); box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            display: flex; flex-direction: column; gap: 15px; min-height: 600px;
+        }
+
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 25px; margin-bottom: 10px;
+        }
+        .panel-header h1 { font-size: 1.6rem; margin-bottom: 5px; font-weight: 700; letter-spacing: 0.5px; }
+        .panel-header p { color: var(--text-muted); font-size: 0.9rem; }
+        .header-actions { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+        .search-box {
+            display: flex; align-items: center; background: var(--input-bg); padding: 10px 18px;
+            border-radius: 12px; width: 100%; max-width: 300px; border: 1px solid var(--border); transition: all 0.3s;
+        }
+        .search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+        .search-box i { color: var(--text-muted); font-size: 1.2rem; margin-right: 10px; }
+        [dir="rtl"] .search-box i { margin-right: 0; margin-left: 10px; }
+        .search-box input { border: none; background: transparent; outline: none; color: var(--text-main); font-family: inherit; font-size: 0.95rem; width: 100%; }
+
+        .table-container { overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+        .data-table th {
+            text-align: left; padding: 0 20px 10px; font-size: 0.7rem; font-weight: 700;
+            color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+        }
+        [dir="rtl"] .data-table th { text-align: right; }
+        .data-table th.actions-col { text-align: center; }
+        .data-table td {
+            padding: 16px 20px; background: var(--input-bg); border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border); font-size: 0.95rem; font-weight: 500;
+        }
+        
+        .data-table tr td:first-child { border-left: 1px solid var(--border); border-radius: 12px 0 0 12px; }
+        .data-table tr td:last-child { border-right: 1px solid var(--border); border-radius: 0 12px 12px 0; }
+        [dir="rtl"] .data-table tr td:first-child { border-left: none; border-right: 1px solid var(--border); border-radius: 0 12px 12px 0; }
+        [dir="rtl"] .data-table tr td:last-child { border-right: none; border-left: 1px solid var(--border); border-radius: 12px 0 0 12px; }
+        .data-table tr:hover td { background: var(--row-hover); }
+
+        .col-employee { display: flex; align-items: center; gap: 15px; }
+        .emp-avatar {
+            width: 42px; height: 42px; background: rgba(59, 130, 246, 0.15); color: var(--primary);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; font-weight: bold; flex-shrink: 0; border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .emp-details h4 { margin-bottom: 2px; font-size: 1rem; color: var(--text-main); }
+        .emp-details span { font-size: 0.75rem; color: var(--text-muted); background: var(--badge-bg); padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+        
+        .col-dept, .col-job { font-size: 0.9rem; color: var(--text-muted); }
+        .col-progress { display: flex; flex-direction: column; gap: 6px; padding-right: 20px; }
+        [dir="rtl"] .col-progress { padding-right: 0; padding-left: 20px; }
+        .mini-progress { display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: var(--text-muted); }
+        .mini-bar { flex: 1; height: 5px; background: var(--badge-bg); border-radius: 3px; overflow: hidden; }
+        .mini-fill { height: 100%; background: var(--primary); border-radius: 3px; box-shadow: 0 0 5px var(--primary-glow); }
+        .mini-fill.danger { background: var(--danger); box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);}
+
+        .actions-cell { display: flex; gap: 12px; justify-content: center; align-items: flex-end; }
+        .action-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .action-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; }
+        .action-btn {
+            width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 1px solid transparent; cursor: pointer; background: transparent; color: var(--text-muted);
+        }
+        .action-btn.edit { background: rgba(59, 130, 246, 0.1); color: var(--primary); border-color: rgba(59, 130, 246, 0.2); }
+        .action-btn.edit:hover { background: var(--primary); color: #fff; box-shadow: 0 0 15px var(--primary-glow); transform: translateY(-2px); }
+        .action-btn.progress { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
+        .action-btn.progress:hover { background: #10b981; color: #fff; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); transform: translateY(-2px); }
+        .action-btn.delete { background: var(--danger-bg); color: var(--danger); border-color: rgba(239, 68, 68, 0.2); }
+        .action-btn.delete:hover { background: var(--danger); color: #fff; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); transform: translateY(-2px); }
+        .action-btn.view { background: rgba(168, 85, 247, 0.1); color: #a855f7; border-color: rgba(168, 85, 247, 0.2); }
+        .action-btn.view:hover { background: #a855f7; color: #fff; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); transform: translateY(-2px); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 1000; padding: 20px;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-content {
+            background: var(--panel-bg); padding: 30px; border-radius: 16px;
+            width: 100%; max-width: 500px; border: 1px solid var(--border); box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            transform: translateY(20px); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        .modal-overlay.active .modal-content { transform: translateY(0); opacity: 1; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { font-size: 1.3rem; }
+        .modal-actions { display: flex; gap: 15px; margin-top: 25px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--input-bg); color: var(--text-main); font-family: inherit; font-size: 0.95rem;
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); }
+
+        .btn-outline { background: transparent; border: 1px solid var(--text-muted); color: var(--text-main); padding: 10px 20px; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 600; font-family: inherit;}
+        .btn-outline:hover { background: rgba(255,255,255,0.05); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), #2563eb); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: inherit; box-shadow: 0 4px 15px var(--primary-glow); display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--primary-glow); }
+        .btn-danger-solid { background: var(--danger); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 600; font-family: inherit; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);}
+
+        .toast {
+            position: fixed; bottom: 30px; right: 30px; background: var(--panel-bg); border: 1px solid var(--border);
+            color: var(--text-main); padding: 15px 25px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: translateY(50px); opacity: 0; transition: all 0.4s ease;
+            z-index: 2000; display: flex; align-items: center; gap: 12px; font-weight: 600; backdrop-filter: blur(10px);
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        [dir="rtl"] .toast { right: auto; left: 30px; }
+
+        .progress-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 8px; font-weight: 600; }
+        .progress-bar-lg { height: 8px; background: var(--input-bg); border-radius: 4px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border); }
+        .progress-fill-lg { height: 100%; background: var(--primary); border-radius: 4px; box-shadow: 0 0 10px var(--primary-glow); }
+        .progress-fill-lg.danger { background: var(--danger); box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);}
+
+        .empty-state { text-align: center; padding: 50px; color: var(--text-muted); width: 100%; }
+
+        /* Members List in Modal */
+        .member-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .member-row { display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border); }
+        .member-info { display: flex; flex-direction: column; gap: 2px; }
+        .member-name { font-weight: 600; font-size: 0.95rem; }
+        .member-dept { font-size: 0.75rem; color: var(--text-muted); }
+        .member-actions { display: flex; gap: 10px; align-items: center; }
+        .rule-select-inline { background: var(--bg-color); border: 1px solid var(--border); color: var(--text-main); padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; }
+        
+        /* --- Section Transition Animation --- */
+        .tab-section {
+            animation: sectionFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        @keyframes sectionFadeIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes sectionFadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(-8px); }
+        }
+
+        /* --- Member row exit animation --- */
+        @keyframes memberSlideOut {
+            0%   { opacity: 1; transform: translateX(0) scaleY(1); max-height: 80px; margin-bottom: 10px; padding: 12px 15px; }
+            60%  { opacity: 0; transform: translateX(40px) scaleY(0.6); }
+            100% { opacity: 0; transform: translateX(60px) scaleY(0); max-height: 0; margin-bottom: 0; padding: 0 15px; }
+        }
+        .member-row.exit {
+            animation: memberSlideOut 0.4s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        /* --- Nav item hover transition --- */
+        .nav-item {
+            transition: color 0.2s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+        }
+        .nav-item:hover:not(.active) {
+            transform: translateY(-1px);
+        }
+        .nav-item:active {
+            transform: scale(0.96);
+        }
+
+        /* ===== COURSES GRID ===== */
+        .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding-top: 10px; }
+        .course-card {
+            background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px;
+            padding: 22px; cursor: pointer; transition: all 0.25s ease; position: relative; overflow: hidden;
+        }
+        .course-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:3px;
+            background: linear-gradient(90deg, var(--primary), #7c3aed);
+        }
+        .course-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: 0 12px 30px rgba(59,130,246,0.15); }
+        .course-card-icon { width:48px; height:48px; border-radius:12px; background:rgba(59,130,246,0.12); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:14px; border:1px solid rgba(59,130,246,0.2); }
+        .course-card-title { font-size:1.05rem; font-weight:700; margin-bottom:6px; }
+        .course-card-desc { font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin-bottom:14px; }
+        .course-card-meta { display:flex; gap:12px; font-size:0.75rem; color:var(--text-muted); }
+        .course-card-meta span { display:flex; align-items:center; gap:4px; }
+        .course-card-actions { display:flex; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+        .btn-sm { padding:6px 14px; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:inherit; border:none; display:flex; align-items:center; gap:6px; }
+        .btn-sm.primary { background:linear-gradient(135deg,var(--primary),#2563eb); color:#fff; }
+        .btn-sm.danger  { background:var(--danger-bg); color:var(--danger); border:1px solid rgba(239,68,68,0.2); }
+        .btn-sm.ghost   { background:var(--badge-bg); color:var(--text-muted); }
+        .btn-sm:hover   { opacity:0.85; transform:translateY(-1px); }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb-nav { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .breadcrumb-btn { background:none; border:none; color:var(--primary); font-family:inherit; font-size:0.95rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; padding:4px 0; }
+        .breadcrumb-btn:hover { text-decoration:underline; }
+        .breadcrumb-sep { color:var(--text-muted); font-size:0.9rem; }
+        .breadcrumb-current { font-size:0.95rem; font-weight:700; color:var(--text-main); }
+
+        /* ===== MODULES LIST ===== */
+        .modules-list { display:flex; flex-direction:column; gap:14px; padding-top:10px; }
+        .module-card {
+            background:var(--input-bg); border:1px solid var(--border); border-radius:12px;
+            overflow:hidden; transition:border-color 0.2s;
+        }
+        .module-card:hover { border-color: rgba(59,130,246,0.3); }
+        .module-card-header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:16px 20px; cursor:pointer; gap:12px;
+        }
+        .module-card-left { display:flex; align-items:center; gap:14px; }
+        .module-number { width:32px; height:32px; border-radius:8px; background:rgba(59,130,246,0.12); color:var(--primary); font-weight:700; font-size:0.85rem; display:flex; align-items:center; justify-content:center; border:1px solid rgba(59,130,246,0.2); flex-shrink:0; }
+        .module-info h4 { font-size:0.95rem; font-weight:700; margin-bottom:3px; }
+        .module-info span { font-size:0.75rem; color:var(--text-muted); }
+        .module-card-actions { display:flex; align-items:center; gap:8px; }
+        .module-body { padding:0 20px 16px; border-top:1px solid var(--border); display:flex; gap:10px; flex-wrap:wrap; }
+        .module-body-btn { margin-top:12px; }
+
+        /* ===== VIDEOS LIST ===== */
+        .videos-list { display:flex; flex-direction:column; gap:0; }
+        .video-item {
+            display:flex; align-items:center; gap:16px; padding:14px 18px;
+            border:1px solid var(--border); border-radius:10px; margin-bottom:8px;
+            background:var(--input-bg); cursor:grab; transition:all 0.2s; user-select:none;
+        }
+        .video-item:active { cursor:grabbing; }
+        .video-item.drag-over { border-color:var(--primary); background:rgba(59,130,246,0.06); box-shadow:0 0 0 2px var(--primary-glow); }
+        .video-item.dragging { opacity:0.4; transform:scale(0.98); }
+        .drag-handle { color:var(--text-muted); font-size:1.2rem; flex-shrink:0; cursor:grab; }
+        .video-thumb { width:44px; height:44px; border-radius:8px; background:rgba(239,68,68,0.1); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; border:1px solid rgba(239,68,68,0.2); }
+        .video-details { flex:1; min-width:0; }
+        .video-title { font-weight:600; font-size:0.95rem; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .video-meta { display:flex; gap:14px; font-size:0.75rem; color:var(--text-muted); flex-wrap:wrap; }
+        .video-meta span { display:flex; align-items:center; gap:4px; }
+        .video-actions { display:flex; gap:6px; flex-shrink:0; }
+
+        /* ===== ASSESSMENT / QUESTIONS ===== */
+        .questions-list { display:flex; flex-direction:column; gap:14px; margin-top:10px; }
+        .question-card { background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+        .question-header { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px; }
+        .question-number { font-size:0.7rem; color:var(--primary); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+        .question-text { font-weight:600; font-size:0.95rem; line-height:1.5; }
+        .question-type-badge { font-size:0.7rem; padding:3px 10px; border-radius:20px; font-weight:700; white-space:nowrap; flex-shrink:0; }
+        .question-type-badge.single { background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.2); }
+        .question-type-badge.multi  { background:rgba(168,85,247,0.12); color:#a855f7; border:1px solid rgba(168,85,247,0.2); }
+        .choices-list { display:flex; flex-direction:column; gap:6px; }
+        .choice-item { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:8px; font-size:0.88rem; border:1px solid var(--border); }
+        .choice-item.correct { background:rgba(16,185,129,0.08); border-color:rgba(16,185,129,0.3); color:#10b981; font-weight:600; }
+        .choice-item.wrong   { background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.15); color:var(--text-muted); }
+        .choice-item i { font-size:1rem; flex-shrink:0; }
+        .question-footer { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+
+        /* ===== ADD QUESTION PANEL ===== */
+        .question-panel {
+            background:var(--panel-bg); border:1px solid var(--primary); border-radius:14px;
+            padding:22px; margin-bottom:20px;
+            max-height:0; overflow:hidden; opacity:0;
+            transition: max-height 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease, padding 0.3s ease;
+        }
+        .question-panel.open { max-height:900px; opacity:1; padding:22px; }
+        .question-panel-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+        .question-panel-header h3 { font-size:1.1rem; font-weight:700; }
+        .choice-row { display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--input-bg); border:1px solid var(--border); border-radius:8px; margin-bottom:8px; transition:border-color 0.2s; }
+        .choice-row.is-correct { border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.06); }
+        .choice-row input[type="text"] { flex:1; background:transparent; border:none; outline:none; color:var(--text-main); font-family:inherit; font-size:0.9rem; }
+        .choice-row input[type="checkbox"], .choice-row input[type="radio"] { accent-color:var(--primary); width:16px; height:16px; flex-shrink:0; cursor:pointer; }
+        .choice-row .remove-choice { background:none; border:none; color:var(--danger); cursor:pointer; font-size:1rem; padding:2px; flex-shrink:0; }
+        .empty-questions { text-align:center; padding:40px; color:var(--text-muted); }
+        .empty-questions i { font-size:2.5rem; margin-bottom:10px; display:block; color:var(--primary); opacity:0.5; }
+
+        /* ===== CUSTOM DROPDOWNS & CONFIRM MODAL ===== */
+        .custom-dropdown {
+            position: relative; width: 100%; user-select: none;
+        }
+        .dropdown-header {
+            width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--input-bg); color: var(--text-main); font-family: inherit; font-size: 0.95rem;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dropdown-header:hover { border-color: rgba(59,130,246,0.5); }
+        .dropdown-header.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); }
+        .dropdown-icon { transition: transform 0.3s; color: var(--text-muted); }
+        .dropdown-header.active .dropdown-icon { transform: rotate(180deg); color: var(--primary); }
+        .dropdown-list {
+            position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: var(--panel-bg);
+            border: 1px solid var(--border); border-radius: 10px; z-index: 100;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transform: translateY(-10px);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 200px; overflow-y: auto; backdrop-filter: blur(10px);
+        }
+        .dropdown-list::-webkit-scrollbar { width: 6px; }
+        .dropdown-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .dropdown-list.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+        .dropdown-item {
+            padding: 12px 15px; font-size: 0.95rem; cursor: pointer; transition: background 0.2s;
+            display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background: rgba(59,130,246,0.1); color: var(--primary); }
+        .dropdown-item.selected { background: rgba(59,130,246,0.15); color: var(--primary); font-weight: 600; }
+
+        .confirm-modal .modal-content { max-width: 400px; text-align: center; padding: 40px 30px; }
+        .confirm-icon-wrapper {
+            width: 80px; height: 80px; border-radius: 50%; background: rgba(239, 68, 68, 0.1);
+            color: var(--danger); display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; margin: 0 auto 20px; border: 2px solid rgba(239, 68, 68, 0.2);
+            animation: pulseDanger 2s infinite;
+        }
+        @keyframes pulseDanger { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        .confirm-title { font-size: 1.4rem; margin-bottom: 10px; font-weight: 700; }
+        .confirm-msg { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px; }
+        .confirm-actions { display: flex; gap: 12px; }
+        .confirm-actions .btn-outline { flex: 1; border-color: var(--border); }
+        .confirm-actions .btn-danger-solid { flex: 1; }
+
+        /* ===== COURSE/MODULE MODAL WIDE ===== */
+        .modal-wide { max-width: 560px; }
+
+        @media (max-width: 1000px) {
+            .panel-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .header-actions { width: 100%; justify-content: flex-start; }
+            .search-box { max-width: 100%; flex: 1; }
+        }
+        @media (max-width: 768px) {
+            .top-bar { flex-direction: column-reverse; gap: 20px; }
+            .top-nav { width: 100%; justify-content: flex-start; }
+            .data-table th:nth-child(4), .data-table td:nth-child(4) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-fx">
+    <div class="stars"></div>
+    <div class="grid-floor"></div>
+</div>
+
+<div class="app-container">
+    <div class="top-bar">
+        <nav class="top-nav">
+            <button class="nav-item active" data-tab="employees"><i class="ph ph-users"></i> <span data-i18n="nav_employees">Employees</span></button>
+            <button class="nav-item" data-tab="departments"><i class="ph ph-buildings"></i> <span data-i18n="nav_departments">Departments</span></button>
+            <button class="nav-item" data-tab="rules"><i class="ph ph-shield-check"></i> <span data-i18n="nav_rules">Rules</span></button>
+            <button class="nav-item" data-tab="courses"><i class="ph ph-books"></i> <span data-i18n="nav_courses">Courses</span></button>
+            <button class="nav-item" data-tab="modules"><i class="ph ph-stack"></i> <span data-i18n="nav_modules">Modules</span></button>
+            <button class="nav-item" data-tab="videos"><i class="ph ph-video-camera"></i> <span data-i18n="nav_videos">Course Videos</span></button>
+        </nav>
+        <div class="controls">
+            <a th:href="@{/logout}" class="icon-btn" title="Logout" style="text-decoration:none; color:inherit;"><i class="ph ph-sign-out"></i></a>
+            <button class="icon-btn" id="langToggle" title="Switch Language"><i class="ph ph-translate"></i></button>
+            <button class="icon-btn" id="themeToggle" title="Toggle Theme"><i class="ph ph-sun"></i></button>
+        </div>
+    </div>
+
+    <main class="main-panel" id="mainPanel">
+        
+        <!-- Employees Section -->
+        <div id="employeesSection" class="tab-section">
+            <div class="panel-header">
+                <div>
+                    <h1 data-i18n="page_title_employees">Manage Employees</h1>
+                    <p data-i18n="page_subtitle_emp">Add, monitor, update factory employees</p>
+                </div>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" id="searchInputEmp" data-i18n-placeholder="search_placeholder" placeholder="Search by name, role or dept...">
+                    </div>
+                    <button class="btn-primary" onclick="openModal('addEmployeeModal')">
+                        <i class="ph ph-plus-circle"></i> <span data-i18n="btn_add_emp">Add Employee</span>
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="th_name">Employee Info</th>
+                            <th data-i18n="th_dept">Department</th>
+                            <th data-i18n="th_job">Job Title</th>
+                            <th data-i18n="th_progress">Progress</th>
+                            <th class="actions-col"><i class="ph ph-gear"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Departments Section -->
+        <div id="departmentsSection" class="tab-section" style="display: none;">
+            <div class="panel-header">
+                <div>
+                    <h1 data-i18n="page_title_dept">Manage Departments</h1>
+                    <p data-i18n="page_subtitle_dept">Control organizational structures</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="openAddDeptPanel()">
+                        <i class="ph ph-plus-circle"></i> <span data-i18n="btn_add_dept">Add Department</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="addDeptPanel" class="question-panel">
+                <div class="question-panel-header">
+                    <h3 data-i18n="title_dept_modal">New Department</h3>
+                    <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeAddDeptPanel()"><i class="ph ph-x"></i></button>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="label_dept_name">Department Name</label>
+                    <input type="text" id="panelDeptName" style="width:100%;padding:12px 15px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-main);font-family:inherit;font-size:0.95rem;" placeholder="e.g. Production" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="label_dept_cat">Category</label>
+                    <input type="hidden" id="panelDeptCat" value="Production">
+                    <div class="custom-dropdown">
+                        <div class="dropdown-header">
+                            <span class="dropdown-selected"><i class="ph ph-factory"></i> Production</span>
+                            <i class="ph ph-caret-down dropdown-icon"></i>
+                        </div>
+                        <div class="dropdown-list">
+                            <div class="dropdown-item selected" data-value="Production" data-icon="ph-factory"><i class="ph ph-factory"></i> Production</div>
+                            <div class="dropdown-item" data-value="HR" data-icon="ph-users"><i class="ph ph-users"></i> HR</div>
+                            <div class="dropdown-item" data-value="Safety" data-icon="ph-shield-check"><i class="ph ph-shield-check"></i> Safety</div>
+                            <div class="dropdown-item" data-value="Maintenance" data-icon="ph-wrench"><i class="ph ph-wrench"></i> Maintenance</div>
+                            <div class="dropdown-item" data-value="Logistics" data-icon="ph-truck"><i class="ph ph-truck"></i> Logistics</div>
+                            <div class="dropdown-item" data-value="Technical" data-icon="ph-cpu"><i class="ph ph-cpu"></i> Technical</div>
+                            <div class="dropdown-item" data-value="Management" data-icon="ph-briefcase"><i class="ph ph-briefcase"></i> Management</div>
+                            <div class="dropdown-item" data-value="Audit" data-icon="ph-file-search"><i class="ph ph-file-search"></i> Audit</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="label_dept_scale">Scalability</label>
+                    <input type="hidden" id="panelDeptScale" value="Medium">
+                    <div class="custom-dropdown">
+                        <div class="dropdown-header">
+                            <span class="dropdown-selected"><i class="ph ph-cell-signal-medium" style="color:#f59e0b;"></i> Medium</span>
+                            <i class="ph ph-caret-down dropdown-icon"></i>
+                        </div>
+                        <div class="dropdown-list">
+                            <div class="dropdown-item" data-value="High" data-icon="ph-cell-signal-full" data-color="#10b981"><i class="ph ph-cell-signal-full" style="color:#10b981;"></i> High</div>
+                            <div class="dropdown-item selected" data-value="Medium" data-icon="ph-cell-signal-medium" data-color="#f59e0b"><i class="ph ph-cell-signal-medium" style="color:#f59e0b;"></i> Medium</div>
+                            <div class="dropdown-item" data-value="Low" data-icon="ph-cell-signal-low" data-color="#ef4444"><i class="ph ph-cell-signal-low" style="color:#ef4444;"></i> Low</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions" style="margin-top:10px;">
+                    <button class="btn-outline" onclick="closeAddDeptPanel()" data-i18n="btn_cancel">Cancel</button>
+                    <button class="btn-primary" style="flex:1;" onclick="savePanelDept()" data-i18n="btn_save">Save</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="th_dept_name">Department Name</th>
+                            <th data-i18n="th_dept_cat">Category</th>
+                            <th data-i18n="th_dept_scale">Scalability</th>
+                            <th data-i18n="th_dept_emp_count">Employees</th>
+                            <th class="actions-col"><i class="ph ph-gear"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="deptTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Rules Section -->
+        <div id="rulesSection" class="tab-section" style="display: none;">
+            <div class="panel-header">
+                <div>
+                    <h1 data-i18n="page_title_rules">Manage Rules</h1>
+                    <p data-i18n="page_subtitle_rules">Control system permissions and roles</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="openAddRulePanel()">
+                        <i class="ph ph-plus-circle"></i> <span data-i18n="btn_add_rule">Add Rule</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="addRulePanel" class="question-panel">
+                <div class="question-panel-header">
+                    <h3 data-i18n="title_rule_modal">New Role</h3>
+                    <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeAddRulePanel()"><i class="ph ph-x"></i></button>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="label_rule_name">Role Name</label>
+                    <input type="hidden" id="panelRuleName" value="Admin">
+                    <div class="custom-dropdown">
+                        <div class="dropdown-header">
+                            <span class="dropdown-selected"><i class="ph ph-shield-star"></i> Admin</span>
+                            <i class="ph ph-caret-down dropdown-icon"></i>
+                        </div>
+                        <div class="dropdown-list">
+                            <div class="dropdown-item selected" data-value="Admin" data-icon="ph-shield-star"><i class="ph ph-shield-star"></i> Admin</div>
+                            <div class="dropdown-item" data-value="Manager" data-icon="ph-briefcase"><i class="ph ph-briefcase"></i> Manager</div>
+                            <div class="dropdown-item" data-value="Supervisor" data-icon="ph-eye"><i class="ph ph-eye"></i> Supervisor</div>
+                            <div class="dropdown-item" data-value="Employee" data-icon="ph-user"><i class="ph ph-user"></i> Employee</div>
+                            <div class="dropdown-item" data-value="Operator" data-icon="ph-gear"><i class="ph ph-gear"></i> Operator</div>
+                            <div class="dropdown-item" data-value="Safety Officer" data-icon="ph-first-aid"><i class="ph ph-first-aid"></i> Safety Officer</div>
+                            <div class="dropdown-item" data-value="System Admin" data-icon="ph-desktop"><i class="ph ph-desktop"></i> System Admin</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="label_rule_perm">Permissions</label>
+                    <input type="hidden" id="panelRulePerm" value="All Access">
+                    <div class="custom-dropdown">
+                        <div class="dropdown-header">
+                            <span class="dropdown-selected"><i class="ph ph-lock-key-open"></i> All Access</span>
+                            <i class="ph ph-caret-down dropdown-icon"></i>
+                        </div>
+                        <div class="dropdown-list">
+                            <div class="dropdown-item selected" data-value="All Access" data-icon="ph-lock-key-open"><i class="ph ph-lock-key-open"></i> All Access</div>
+                            <div class="dropdown-item" data-value="Read, Write, Audit" data-icon="ph-pencil-simple"><i class="ph ph-pencil-simple"></i> Read, Write, Audit</div>
+                            <div class="dropdown-item" data-value="Read, Play Games" data-icon="ph-game-controller"><i class="ph ph-game-controller"></i> Read, Play Games</div>
+                            <div class="dropdown-item" data-value="Read Only" data-icon="ph-book-open"><i class="ph ph-book-open"></i> Read Only</div>
+                            <div class="dropdown-item" data-value="Custom" data-icon="ph-sliders"><i class="ph ph-sliders"></i> Custom</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions" style="margin-top:10px;">
+                    <button class="btn-outline" onclick="closeAddRulePanel()" data-i18n="btn_cancel">Cancel</button>
+                    <button class="btn-primary" style="flex:1;" onclick="savePanelRule()" data-i18n="btn_save">Save</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="th_rule_name">Rule Name</th>
+                            <th data-i18n="th_rule_perm">Permissions</th>
+                            <th data-i18n="th_rule_count">Users Count</th>
+                            <th class="actions-col"><i class="ph ph-gear"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="ruleTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== COURSES SECTION ===== -->
+        <div id="coursesSection" class="tab-section" style="display:none;">
+            <div class="panel-header">
+                <div>
+                    <h1 data-i18n="page_title_courses">Manage Courses</h1>
+                    <p data-i18n="page_subtitle_courses">Browse and manage all training courses</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="openCourseForm()">
+                        <i class="ph ph-plus-circle"></i> <span data-i18n="btn_add_course">Add Course</span>
+                    </button>
+                </div>
+            </div>
+            <div id="coursesGrid" class="courses-grid"></div>
+        </div>
+
+        <!-- ===== MODULES SECTION ===== -->
+        <div id="modulesSection" class="tab-section" style="display:none;">
+            <div class="panel-header">
+                <div class="breadcrumb-nav">
+                    <button class="breadcrumb-btn" onclick="navigateTo('courses')"><i class="ph ph-books"></i> <span data-i18n="nav_courses">Courses</span></button>
+                    <i class="ph ph-caret-right breadcrumb-sep"></i>
+                    <span id="modulesBreadcrumbCourse" class="breadcrumb-current"></span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="openModuleForm()">
+                        <i class="ph ph-plus-circle"></i> <span data-i18n="btn_add_module">Add Module</span>
+                    </button>
+                </div>
+            </div>
+            <div id="modulesList" class="modules-list"></div>
+        </div>
+
+        <!-- ===== VIDEOS SECTION ===== -->
+        <div id="videosSection" class="tab-section" style="display:none;">
+            <div class="panel-header">
+                <div class="breadcrumb-nav">
+                    <button class="breadcrumb-btn" onclick="navigateTo('courses')"><i class="ph ph-books"></i> <span data-i18n="nav_courses">Courses</span></button>
+                    <i class="ph ph-caret-right breadcrumb-sep"></i>
+                    <button class="breadcrumb-btn" id="videosBreadcrumbCourse" onclick="goBackToModules()"></button>
+                    <i class="ph ph-caret-right breadcrumb-sep"></i>
+                    <span id="videosBreadcrumbModule" class="breadcrumb-current"></span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="openVideoForm()">
+                        <i class="ph ph-plus-circle"></i> <span data-i18n="btn_add_video">Add Video</span>
+                    </button>
+                </div>
+            </div>
+            <div id="videosContainer"></div>
+        </div>
+
+        <!-- ===== ASSESSMENT QUESTIONS SECTION ===== -->
+        <div id="assessmentSection" class="tab-section" style="display:none;">
+            <div class="panel-header">
+                <div class="breadcrumb-nav">
+                    <button class="breadcrumb-btn" onclick="navigateTo('courses')"><i class="ph ph-books"></i> <span data-i18n="nav_courses">Courses</span></button>
+                    <i class="ph ph-caret-right breadcrumb-sep"></i>
+                    <button class="breadcrumb-btn" id="assessBreadcrumbCourse" onclick="goBackToModules()"></button>
+                    <i class="ph ph-caret-right breadcrumb-sep"></i>
+                    <span id="assessBreadcrumbModule" class="breadcrumb-current"></span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-primary" id="addQuestionBtn" onclick="openAddQuestionPanel()">
+                        <i class="ph ph-plus-circle"></i> <span data-i18n="btn_add_question">Add Question</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Slide-in Add Question Panel -->
+            <div id="addQuestionPanel" class="question-panel">
+                <div class="question-panel-header">
+                    <h3 data-i18n="panel_add_question">New Question</h3>
+                    <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeAddQuestionPanel()"><i class="ph ph-x"></i></button>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="label_question_text">Question</label>
+                    <textarea id="questionText" rows="3" style="width:100%;padding:12px 15px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-main);font-family:inherit;font-size:0.95rem;resize:vertical;" placeholder="Type your question here..."></textarea>
+                </div>
+                <div class="form-group">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <label data-i18n="label_answer_type">Answer Type</label>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem;color:var(--text-muted);">
+                            <input type="checkbox" id="multiAnswerCheck" onchange="toggleMultiAnswer()" style="accent-color:var(--primary);width:16px;height:16px;">
+                            <span data-i18n="label_multi_answer">Multiple correct answers</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="choicesContainer">
+                    <!-- Choices rendered here -->
+                </div>
+                <button class="btn-outline" style="width:100%;margin-bottom:15px;" onclick="addChoice()">
+                    <i class="ph ph-plus"></i> <span data-i18n="btn_add_choice">Add Choice</span>
+                </button>
+                <div class="modal-actions" style="margin-top:10px;">
+                    <button class="btn-outline" onclick="closeAddQuestionPanel()" data-i18n="btn_cancel">Cancel</button>
+                    <button class="btn-primary" style="flex:1;" onclick="saveQuestion()" data-i18n="btn_save_question">Save Question</button>
+                </div>
+            </div>
+
+            <div id="questionsList" class="questions-list"></div>
+        </div>
+
+        <!-- Placeholder for other sections -->
+        <div id="otherSection" class="tab-section empty-state" style="display: none;">
+            <i class="ph ph-cone" style="font-size: 3rem; margin-bottom: 15px; color: var(--primary);"></i>
+            <h2 data-i18n="empty_section">Section Under Construction</h2>
+        </div>
+
+    </main>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- ADD EMPLOYEE MODAL -->
+<div class="modal-overlay" id="addEmployeeModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 data-i18n="title_add_emp">Add New Employee</h2>
+            <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeModal('addEmployeeModal')"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="addEmpForm">
+            <div class="form-group">
+                <label data-i18n="label_name">Name</label>
+                <input type="text" id="addEmpName" required>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_role">Rule/Role</label>
+                <select id="addEmpRole"></select> <!-- Populated dynamically from rules -->
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_email">Email</label>
+                <input type="email" id="addEmpEmail" required>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_department">Department</label>
+                <select id="addEmpDept"></select> <!-- Populated dynamically from departments -->
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_job">Job Title</label>
+                <input type="text" id="addEmpJob" required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="closeModal('addEmployeeModal')" data-i18n="btn_cancel">Cancel</button>
+                <button type="submit" class="btn-primary" style="flex:1;" data-i18n="btn_save">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT EMPLOYEE MODAL -->
+<div class="modal-overlay" id="editEmployeeModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 data-i18n="modal_edit_title">Edit Employee</h2>
+            <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeModal('editEmployeeModal')"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="editEmpForm">
+            <input type="hidden" id="editEmpId">
+            <div class="form-group">
+                <label data-i18n="label_name">Name</label>
+                <input type="text" id="editEmpName" required>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_role">Rule/Role</label>
+                <select id="editEmpRole"></select>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_department">Department</label>
+                <select id="editEmpDept"></select>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_job">Job Title</label>
+                <input type="text" id="editEmpJob" required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="closeModal('editEmployeeModal')" data-i18n="btn_cancel">Cancel</button>
+                <button type="submit" class="btn-primary" style="flex:1;" data-i18n="btn_save">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- PROGRESS MODAL -->
+<div class="modal-overlay" id="progressModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 data-i18n="modal_progress_title">Course Progress</h2>
+            <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeModal('progressModal')"><i class="ph ph-x"></i></button>
+        </div>
+        <div id="progressContent" style="margin-bottom: 25px;"></div>
+        <div class="modal-actions">
+            <button type="button" class="btn-outline" onclick="closeModal('progressModal')" data-i18n="btn_close">Close</button>
+            <button type="button" class="btn-danger-solid" onclick="resetProgress()" data-i18n="btn_reset_progress">Reset</button>
+        </div>
+    </div>
+</div>
+
+<!-- DEPARTMENTS MODALS -->
+<div class="modal-overlay" id="deptModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="deptModalTitle" data-i18n="title_dept_modal">Department</h2>
+            <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeModal('deptModal')"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="deptForm">
+            <input type="hidden" id="deptId">
+            <div class="form-group">
+                <label data-i18n="label_dept_name">Department Name</label>
+                <input type="text" id="deptName" required>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_dept_cat">Category</label>
+                <select id="deptCat">
+                    <option value="Production">Production</option>
+                    <option value="HR">HR</option>
+                    <option value="Safety">Safety</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Logistics">Logistics</option>
+                    <option value="Technical">Technical</option>
+                    <option value="Management">Management</option>
+                    <option value="Audit">Audit</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="closeModal('deptModal')" data-i18n="btn_cancel">Cancel</button>
+                <button type="submit" class="btn-primary" style="flex:1;" data-i18n="btn_save">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- RULES MODALS -->
+<div class="modal-overlay" id="ruleModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="ruleModalTitle" data-i18n="title_rule_modal">Rule</h2>
+            <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeModal('ruleModal')"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="ruleForm">
+            <input type="hidden" id="ruleId">
+            <div class="form-group">
+                <label data-i18n="label_rule_name">Rule Name</label>
+                <input type="text" id="ruleName" required>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_rule_perm">Permissions</label>
+                <select id="rulePerm">
+                    <option value="All Access">All Access</option>
+                    <option value="Read, Write, Audit">Read, Write, Audit</option>
+                    <option value="Read, Play Games">Read, Play Games</option>
+                    <option value="Read Only">Read Only</option>
+                    <option value="Custom">Custom</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="closeModal('ruleModal')" data-i18n="btn_cancel">Cancel</button>
+                <button type="submit" class="btn-primary" style="flex:1;" data-i18n="btn_save">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- VIEW MEMBERS MODAL -->
+<div class="modal-overlay" id="membersModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 data-i18n="title_members_modal">Rule Members</h2>
+            <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeModal('membersModal')"><i class="ph ph-x"></i></button>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;" id="membersModalSubtitle"></p>
+        <div class="member-list" id="memberListContainer">
+            <!-- Members injected via JS -->
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-outline" onclick="closeModal('membersModal')" data-i18n="btn_close">Close</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ===== COURSE MODAL ===== -->
+<div class="modal-overlay" id="courseModal">
+    <div class="modal-content modal-wide">
+        <div class="modal-header">
+            <h2 id="courseModalTitle">Course Details</h2>
+            <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeModal('courseModal')"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="courseForm">
+            <input type="hidden" id="courseId">
+            <div class="form-group">
+                <label data-i18n="label_course_title">Course Title</label>
+                <input type="text" id="courseTitle" required>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_course_desc">Description</label>
+                <textarea id="courseDesc" rows="3" style="width:100%;padding:12px 15px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-main);font-family:inherit;font-size:0.95rem;resize:vertical;"></textarea>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_course_category">Category</label>
+                <input type="hidden" id="courseCategory" value="Safety">
+                <div class="custom-dropdown" id="categoryDropdown">
+                    <div class="dropdown-header">
+                        <span class="dropdown-selected"><i class="ph ph-shield-check"></i> Safety</span>
+                        <i class="ph ph-caret-down dropdown-icon"></i>
+                    </div>
+                    <div class="dropdown-list">
+                        <div class="dropdown-item selected" data-value="Safety" data-icon="ph-shield-check"><i class="ph ph-shield-check"></i> Safety</div>
+                        <div class="dropdown-item" data-value="Emergency" data-icon="ph-warning-circle"><i class="ph ph-warning-circle"></i> Emergency</div>
+                        <div class="dropdown-item" data-value="Operations" data-icon="ph-factory"><i class="ph ph-factory"></i> Operations</div>
+                        <div class="dropdown-item" data-value="Management" data-icon="ph-briefcase"><i class="ph ph-briefcase"></i> Management</div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_course_level">Level</label>
+                <input type="hidden" id="courseLevel" value="Beginner">
+                <div class="custom-dropdown" id="levelDropdown">
+                    <div class="dropdown-header">
+                        <span class="dropdown-selected"><i class="ph ph-cell-signal-low" style="color:#10b981;"></i> Beginner</span>
+                        <i class="ph ph-caret-down dropdown-icon"></i>
+                    </div>
+                    <div class="dropdown-list">
+                        <div class="dropdown-item selected" data-value="Beginner" data-icon="ph-cell-signal-low" data-color="#10b981"><i class="ph ph-cell-signal-low" style="color:#10b981;"></i> Beginner</div>
+                        <div class="dropdown-item" data-value="Intermediate" data-icon="ph-cell-signal-medium" data-color="#f59e0b"><i class="ph ph-cell-signal-medium" style="color:#f59e0b;"></i> Intermediate</div>
+                        <div class="dropdown-item" data-value="Advanced" data-icon="ph-cell-signal-full" data-color="#ef4444"><i class="ph ph-cell-signal-full" style="color:#ef4444;"></i> Advanced</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="closeModal('courseModal')" data-i18n="btn_cancel">Cancel</button>
+                <button type="submit" class="btn-primary" style="flex:1;" data-i18n="btn_save">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== MODULE MODAL ===== -->
+<div class="modal-overlay" id="moduleModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="moduleModalTitle">Module Details</h2>
+            <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeModal('moduleModal')"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="moduleForm">
+            <input type="hidden" id="moduleId">
+            <div class="form-group">
+                <label data-i18n="label_module_name">Module Name</label>
+                <input type="text" id="moduleName" required>
+            </div>
+
+
+            <div class="form-group">
+                <label data-i18n="label_module_desc">Description</label>
+                <textarea id="moduleDesc" rows="2" style="width:100%;padding:12px 15px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-main);font-family:inherit;font-size:0.95rem;resize:vertical;"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="closeModal('moduleModal')" data-i18n="btn_cancel">Cancel</button>
+                <button type="submit" class="btn-primary" style="flex:1;" data-i18n="btn_save">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== VIDEO MODAL ===== -->
+<div class="modal-overlay" id="videoModal">
+    <div class="modal-content modal-wide">
+        <div class="modal-header">
+            <h2 id="videoModalTitle">Video Details</h2>
+            <button class="icon-btn" style="width:32px;height:32px;border:none;" onclick="closeModal('videoModal')"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="videoForm">
+            <input type="hidden" id="videoId">
+            <div class="form-group">
+                <label data-i18n="label_video_title">Video Title</label>
+                <input type="text" id="videoTitle" required>
+            </div>
+            <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                    <label data-i18n="label_video_duration">Duration (e.g. 12:30)</label>
+                    <input type="text" id="videoDuration" placeholder="mm:ss">
+                </div>
+                <div>
+                    <label data-i18n="label_video_est">Est. Completion (min)</label>
+                    <input type="number" id="videoEst" placeholder="15" min="1">
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-i18n="label_video_url">Video URL</label>
+                <input type="url" id="videoUrl" placeholder="https://...">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="closeModal('videoModal')" data-i18n="btn_cancel">Cancel</button>
+                <button type="submit" class="btn-primary" style="flex:1;" data-i18n="btn_save">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== CONFIRM DELETE MODAL ===== -->
+<div class="modal-overlay confirm-modal" id="confirmDeleteModal">
+    <div class="modal-content">
+        <div class="confirm-icon-wrapper">
+            <i class="ph ph-warning-octagon"></i>
+        </div>
+        <h2 class="confirm-title" data-i18n="title_confirm_delete">Confirm Deletion</h2>
+        <p class="confirm-msg" id="confirmDeleteMsg">Are you sure you want to delete this item? This action cannot be undone.</p>
+        <div class="confirm-actions">
+            <button class="btn-outline" onclick="closeModal('confirmDeleteModal')" data-i18n="btn_cancel">Cancel</button>
+            <button class="btn-danger-solid" id="confirmDeleteBtn" data-i18n="btn_delete">Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toastMsg">
+    <i class="ph-fill ph-check-circle" style="color: #10b981; font-size: 1.5rem;"></i>
+    <span id="toastText">Success</span>
+</div>
+
+<script th:inline="javascript">
+    // --- State Management ---
+    let currentLang = 'en';
+    let currentTheme = 'dark';
+    let currentSelectedEmpId = null;
+    let searchQueryEmp = '';
+    let nextIds = { emp: 5, dept: 4, rule: 4 };
+
+    // --- Mock Data ---
+
+    let departments = [
+        /*[# th:each="d : ${departments}"]*/
+        { id: /*[[${d.dep_id}]]*/ 1, name: /*[[${d.dep_title}]]*/ 'Engineering', category: "General", scalability: "Medium" },
+        /*[/]*/
+    ];
+
+
+
+    let rules = [
+        /*[# th:each="r : ${rules}"]*/
+        { id: /*[[${r.id}]]*/ 1, name: /*[[${r.name}]]*/ 'Role', permissions: /*[[${r.description ?: 'Read, Write'}]]*/ 'Permissions' },
+        /*[/]*/
+    ];
+
+
+
+    let employees = [
+        /*[# th:each="u : ${users}"]*/
+        { 
+            id: /*[[${u.userId}]]*/ 1, 
+            name: /*[[${u.username}]]*/ 'Name', 
+            role: /*[[${u.rule?.name ?: 'Unassigned'}]]*/ 'Role', 
+            email: /*[[${u.phoneNumber ?: 'N/A'}]]*/ 'Email', 
+            department: /*[[${u.job?.dep?.dep_title ?: 'Unassigned'}]]*/ 'Dept', 
+            jobTitle: /*[[${u.job?.job_title ?: 'Unassigned'}]]*/ 'Job', 
+            courseProgress: 0, 
+            gameProgress: 0 
+        },
+        /*[/]*/
+    ];
+
+
+    // --- Translation Dictionary ---
+    const i18n = {
+        en: {
+            nav_employees: "Employees", nav_departments: "Departments", nav_rules: "Roles", nav_courses: "Courses", nav_modules: "Modules", nav_videos: "Course Videos",
+            page_title_employees: "Manage Employees", page_subtitle_emp: "Add, monitor, and update your team",
+            page_title_dept: "Manage Departments", page_subtitle_dept: "Control organizational structures",
+            page_title_rules: "Manage Roles", page_subtitle_rules: "Control system permissions and access levels",
+            search_placeholder: "Search employees...",
+            btn_add_emp: "Add Employee", btn_add_dept: "Add Department", btn_add_rule: "Add Role",
+            th_name: "Employee Info", th_dept: "Department", th_job: "Job Title", th_progress: "Progress",
+            th_dept_name: "Department Name", th_dept_cat: "Category", th_dept_scale: "Scalability", th_dept_emp_count: "Employees",
+            th_rule_name: "Role Name", th_rule_perm: "Permissions", th_rule_count: "Members",
+            title_add_emp: "Add New Employee", modal_edit_title: "Edit Employee",
+            label_name: "Full Name", label_role: "Role", label_email: "Email", label_department: "Department", label_job: "Job Title",
+            title_dept_modal: "Department Details", label_dept_name: "Department Name", label_dept_cat: "Category", label_dept_scale: "Scalability",
+            scale_high: "High", scale_med: "Medium", scale_low: "Low",
+            title_rule_modal: "Role Details", label_rule_name: "Role Name", label_rule_perm: "Permissions (comma separated)",
+            title_members_modal: "Role Members",
+            members_modal_prefix: "Role",
+            no_members: "No members assigned to this role.",
+            no_records: "No records found.",
+            btn_cancel: "Cancel", btn_save: "Save", btn_close: "Close", btn_reset_progress: "Reset Progress",
+            btn_edit: "Edit", btn_delete: "Delete", btn_progress_view: "Progress", btn_view_members: "Members", btn_remove: "Remove",
+            modal_progress_title: "Employee Progress",
+            users_label: "Members",
+            msg_reset: "Progress reset successfully.", msg_delete: "Are you sure you want to delete this?", msg_saved: "Saved successfully!", msg_added: "Added successfully!",
+            empty_section: "Section Under Construction",
+            unassigned: "Unassigned",
+            // Courses
+            page_title_courses: "Manage Courses", page_subtitle_courses: "Browse and manage all training courses",
+            btn_add_course: "Add Course", btn_add_module: "Add Module", btn_add_video: "Add Video",
+            btn_add_question: "Add Question", btn_save_question: "Save Question", btn_add_choice: "Add Choice",
+            label_course_title: "Course Title", label_course_desc: "Description", label_course_category: "Category", label_course_level: "Level",
+            label_module_name: "Module Name", label_module_desc: "Description",
+            label_video_title: "Video Title", label_video_duration: "Duration", label_video_est: "Est. Completion (min)", label_video_url: "Video URL",
+            label_question_text: "Question", label_answer_type: "Answer Type", label_multi_answer: "Multiple correct answers",
+            lbl_open_modules: "Modules", lbl_open_assessment: "Assessment", lbl_open_videos: "Videos",
+            lbl_rename: "Rename", lbl_delete_mod: "Delete",
+            lbl_edit_video: "Edit", lbl_delete_video: "Delete",
+            lbl_level_beginner: "Beginner", lbl_level_intermediate: "Intermediate", lbl_level_advanced: "Advanced",
+            txt_no_questions: "No questions yet. Click 'Add Question' to get started.",
+            txt_no_videos: "No videos in this module yet.",
+            txt_no_modules: "No modules yet. Add your first module.",
+            txt_modules_count: "modules", txt_videos_count: "videos",
+            txt_duration: "Duration", txt_est: "Est.", txt_min: "min",
+            txt_single_answer: "Single Answer", txt_multi_answer: "Multiple Answers",
+            txt_correct: "Correct", txt_wrong: "Wrong",
+            msg_del_course: "Delete this course and all its content?",
+            msg_del_module: "Delete this module and all its videos?",
+            msg_del_video: "Delete this video?",
+            msg_del_question: "Delete this question?"
+        },
+        ar: {
+            nav_employees: "الموظفون", nav_departments: "الأقسام", nav_rules: "الأدوار", nav_courses: "الدورات", nav_modules: "الوحدات", nav_videos: "مقاطع الفيديو",
+            page_title_employees: "إدارة الموظفين", page_subtitle_emp: "أضف وتابع وحدّث بيانات فريقك",
+            page_title_dept: "إدارة الأقسام", page_subtitle_dept: "تنظيم الهيكل الوظيفي للمنشأة",
+            page_title_rules: "إدارة الأدوار", page_subtitle_rules: "تحكم في صلاحيات الوصول لكل دور",
+            search_placeholder: "ابحث بالاسم أو القسم أو الدور...",
+            btn_add_emp: "إضافة موظف", btn_add_dept: "إضافة قسم", btn_add_rule: "إضافة دور",
+            th_name: "بيانات الموظف", th_dept: "القسم", th_job: "المسمى الوظيفي", th_progress: "مستوى الإنجاز",
+            th_dept_name: "اسم القسم", th_dept_cat: "التصنيف", th_dept_scale: "قابلية التوسع", th_dept_emp_count: "عدد الموظفين",
+            th_rule_name: "اسم الدور", th_rule_perm: "الصلاحيات", th_rule_count: "الأعضاء",
+            title_add_emp: "تسجيل موظف جديد", modal_edit_title: "تعديل بيانات الموظف",
+            label_name: "الاسم الكامل", label_role: "الدور الوظيفي", label_email: "البريد الإلكتروني", label_department: "القسم", label_job: "المسمى الوظيفي",
+            title_dept_modal: "تفاصيل القسم", label_dept_name: "اسم القسم", label_dept_cat: "التصنيف", label_dept_scale: "قابلية التوسع",
+            scale_high: "عالية", scale_med: "متوسطة", scale_low: "منخفضة",
+            title_rule_modal: "تفاصيل الدور", label_rule_name: "اسم الدور", label_rule_perm: "الصلاحيات (مفصولة بفاصلة)",
+            title_members_modal: "أعضاء الدور",
+            members_modal_prefix: "الدور",
+            no_members: "لا يوجد موظفون مُعيّنون لهذا الدور حتى الآن.",
+            no_records: "لا توجد نتائج مطابقة.",
+            btn_cancel: "إلغاء", btn_save: "حفظ", btn_close: "إغلاق", btn_reset_progress: "إعادة تعيين التقدم",
+            btn_edit: "تعديل", btn_delete: "حذف", btn_progress_view: "الإنجاز", btn_view_members: "الأعضاء", btn_remove: "إزالة",
+            modal_progress_title: "تقدم الموظف",
+            users_label: "عضو",
+            msg_reset: "تمّت إعادة تعيين التقدم بنجاح.", msg_delete: "هل أنت متأكد من رغبتك في الحذف؟", msg_saved: "تمّ الحفظ بنجاح!", msg_added: "تمّت الإضافة بنجاح!",
+            empty_section: "هذا القسم قيد الإنشاء",
+            unassigned: "بدون دور",
+            // Courses
+            page_title_courses: "إدارة الدورات", page_subtitle_courses: "تصفح وإدارة جميع الدورات التدريبية",
+            btn_add_course: "إضافة دورة", btn_add_module: "إضافة وحدة", btn_add_video: "إضافة فيديو",
+            btn_add_question: "إضافة سؤال", btn_save_question: "حفظ السؤال", btn_add_choice: "إضافة اختيار",
+            label_course_title: "عنوان الدورة", label_course_desc: "الوصف", label_course_category: "التصنيف", label_course_level: "المستوى",
+            label_module_name: "اسم الوحدة", label_module_desc: "الوصف",
+            label_video_title: "عنوان الفيديو", label_video_duration: "المدة", label_video_est: "الوقت المتوقع (دقيقة)", label_video_url: "رابط الفيديو",
+            label_question_text: "السؤال", label_answer_type: "نوع الإجابة", label_multi_answer: "أكثر من إجابة صحيحة",
+            lbl_open_modules: "الوحدات", lbl_open_assessment: "الاختبار", lbl_open_videos: "الفيديوهات",
+            lbl_rename: "تعديل الاسم", lbl_delete_mod: "حذف",
+            lbl_edit_video: "تعديل", lbl_delete_video: "حذف",
+            lbl_level_beginner: "مبتدئ", lbl_level_intermediate: "متوسط", lbl_level_advanced: "متقدم",
+            txt_no_questions: "لا توجد أسئلة بعد. اضغط «إضافة سؤال» للبدء.",
+            txt_no_videos: "لا توجد فيديوهات في هذه الوحدة بعد.",
+            txt_no_modules: "لا توجد وحدات بعد. أضف وحدتك الأولى.",
+            txt_modules_count: "وحدة", txt_videos_count: "فيديو",
+            txt_duration: "المدة", txt_est: "متوقع", txt_min: "دقيقة",
+            txt_single_answer: "إجابة واحدة", txt_multi_answer: "إجابات متعددة",
+            txt_correct: "صحيح", txt_wrong: "خطأ",
+            msg_del_course: "هل تريد حذف هذه الدورة وكل محتواها؟",
+            msg_del_module: "هل تريد حذف هذه الوحدة وجميع فيديوهاتها؟",
+            msg_del_video: "هل تريد حذف هذا الفيديو؟",
+            msg_del_question: "هل تريد حذف هذا السؤال؟"
+        }
+    };
+
+    // --- DOM Elements ---
+    const htmlEl = document.documentElement;
+    const tabSections = document.querySelectorAll('.tab-section');
+
+    // --- Initialization ---
+    let confirmCallback = null;
+    window.showConfirmModal = function(msgKey, callback) {
+        document.getElementById('confirmDeleteMsg').textContent = i18n[currentLang][msgKey];
+        confirmCallback = callback;
+        openModal('confirmDeleteModal');
+    };
+    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+        closeModal('confirmDeleteModal');
+        if (confirmCallback) confirmCallback();
+    });
+
+    function setupCustomDropdowns() {
+        document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
+            const header = dropdown.querySelector('.dropdown-header');
+            const list = dropdown.querySelector('.dropdown-list');
+            const hiddenInput = dropdown.parentElement.querySelector('input[type="hidden"]');
+            header.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.dropdown-list').forEach(l => { if(l !== list) l.classList.remove('open'); });
+                document.querySelectorAll('.dropdown-header').forEach(h => { if(h !== header) h.classList.remove('active'); });
+                list.classList.toggle('open'); header.classList.toggle('active');
+            });
+            list.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const val = item.getAttribute('data-value'), icon = item.getAttribute('data-icon'), color = item.getAttribute('data-color');
+                    list.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected'); hiddenInput.value = val;
+                    const selectedSpan = header.querySelector('.dropdown-selected');
+                    selectedSpan.innerHTML = color ? `<i class="ph ${icon}" style="color:${color};"></i> ${val}` : `<i class="ph ${icon}"></i> ${val}`;
+                    list.classList.remove('open'); header.classList.remove('active');
+                });
+            });
+        });
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.dropdown-list').forEach(l => l.classList.remove('open'));
+            document.querySelectorAll('.dropdown-header').forEach(h => h.classList.remove('active'));
+        });
+    }
+
+    function setDropdownValue(dropdownId, value) {
+        const dropdown = document.getElementById(dropdownId); if(!dropdown) return;
+        const item = dropdown.querySelector(`.dropdown-item[data-value="${value}"]`);
+        if(item) { item.click(); } else { const first = dropdown.querySelector('.dropdown-item'); if(first) first.click(); }
+    }
+
+    function init() {
+        populateSelects();
+        setupCustomDropdowns();
+        renderAll();
+        applyTranslations();
+    }
+
+    function renderAll() {
+        renderEmployees();
+        renderDepartments();
+        renderRules();
+    }
+
+    function populateSelects() {
+        const deptSelects = [document.getElementById('addEmpDept'), document.getElementById('editEmpDept')];
+        const ruleSelects = [document.getElementById('addEmpRole'), document.getElementById('editEmpRole')];
+        
+        deptSelects.forEach(sel => {
+            if(!sel) return;
+            sel.innerHTML = '';
+            departments.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.name; opt.textContent = d.name;
+                sel.appendChild(opt);
+            });
+        });
+
+        ruleSelects.forEach(sel => {
+            if(!sel) return;
+            sel.innerHTML = '';
+            rules.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.name; opt.textContent = r.name;
+                sel.appendChild(opt);
+            });
+        });
+    }
+
+    // --- Theme & Lang Logic ---
+    document.getElementById('themeToggle').addEventListener('click', (e) => {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        htmlEl.setAttribute('data-theme', currentTheme);
+        e.currentTarget.innerHTML = currentTheme === 'dark' ? '<i class="ph ph-sun"></i>' : '<i class="ph ph-moon"></i>';
+    });
+
+    document.getElementById('langToggle').addEventListener('click', () => {
+        currentLang = currentLang === 'en' ? 'ar' : 'en';
+        htmlEl.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+        renderAll(); applyTranslations();
+    });
+
+    function applyTranslations() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (i18n[currentLang][key]) el.textContent = i18n[currentLang][key];
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (i18n[currentLang][key]) el.placeholder = i18n[currentLang][key];
+        });
+    }
+
+    function showToast(msgKey) {
+        const toast = document.getElementById('toastMsg');
+        document.getElementById('toastText').textContent = i18n[currentLang][msgKey];
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // --- Navigation Logic ---
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+            
+            const targetTab = item.getAttribute('data-tab');
+            const sectionMap = { 
+                'employees': 'employeesSection', 
+                'departments': 'departmentsSection', 
+                'rules': 'rulesSection',
+                'courses': 'coursesSection',
+                'modules': 'modulesSection',
+                'videos': 'videosSection'
+            };
+            const targetId = sectionMap[targetTab] || 'otherSection';
+
+            // Animate out current visible section, then animate in new one
+            const currentVisible = [...tabSections].find(s => s.style.display !== 'none');
+
+            function showTarget() {
+                tabSections.forEach(sec => { sec.style.display = 'none'; sec.style.animation = ''; });
+                const targetEl = document.getElementById(targetId);
+                if (targetId === 'otherSection') {
+                    targetEl.style.flexDirection = 'column';
+                    targetEl.style.alignItems = 'center';
+                    targetEl.style.justifyContent = 'center';
+                }
+                targetEl.style.display = 'block';
+                // Restart animation
+                targetEl.style.animation = 'none';
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        targetEl.style.animation = 'sectionFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both';
+                    });
+                });
+                renderAll(); applyTranslations();
+                if (targetTab === 'courses') renderCourses();
+            }
+
+            if (currentVisible && currentVisible.id !== targetId) {
+                currentVisible.style.animation = 'sectionFadeOut 0.22s ease forwards';
+                setTimeout(showTarget, 200);
+            } else {
+                showTarget();
+            }
+        });
+    });
+
+    // --- Employees Logic ---
+    document.getElementById('searchInputEmp').addEventListener('input', (e) => { searchQueryEmp = e.target.value.toLowerCase(); renderEmployees(); applyTranslations(); });
+
+    function renderEmployees() {
+        const tbody = document.getElementById('employeeTableBody');
+        tbody.innerHTML = '';
+        const filtered = employees.filter(emp => emp.name.toLowerCase().includes(searchQueryEmp) || emp.role.toLowerCase().includes(searchQueryEmp));
+        if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="empty-state">${i18n[currentLang].no_records}</td></tr>`; return; }
+
+        filtered.forEach(emp => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div class="col-employee">
+                        <div class="emp-avatar">${emp.name.charAt(0).toUpperCase()}</div>
+                        <div class="emp-details"><h4>${emp.name}</h4><span>${emp.role}</span></div>
+                    </div>
+                </td>
+                <td class="col-dept">${emp.department}</td>
+                <td class="col-job">${emp.jobTitle}</td>
+                <td>
+                    <div class="col-progress">
+                        <div class="mini-progress"><i class="ph ph-books"></i><div class="mini-bar"><div class="mini-fill ${emp.courseProgress<50?'danger':''}" style="width:${emp.courseProgress}%"></div></div><span>${emp.courseProgress}%</span></div>
+                        <div class="mini-progress"><i class="ph ph-game-controller"></i><div class="mini-bar"><div class="mini-fill ${emp.gameProgress<50?'danger':''}" style="width:${emp.gameProgress}%"></div></div><span>${emp.gameProgress}%</span></div>
+                    </div>
+                </td>
+                <td class="actions-cell">
+                    <div class="action-item"><span class="action-label" data-i18n="btn_progress_view">${i18n[currentLang].btn_progress_view}</span><button class="action-btn progress" onclick="openProgress(${emp.id})"><i class="ph-fill ph-chart-line-up"></i></button></div>
+                    <div class="action-item"><span class="action-label" data-i18n="btn_edit">${i18n[currentLang].btn_edit}</span><button class="action-btn edit" onclick="openEditEmp(${emp.id})"><i class="ph-fill ph-pencil-simple"></i></button></div>
+                    <div class="action-item"><span class="action-label" data-i18n="btn_delete">${i18n[currentLang].btn_delete}</span><button class="action-btn delete" onclick="deleteEmp(${emp.id})"><i class="ph-fill ph-trash"></i></button></div>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.getElementById('addEmpForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const data = new URLSearchParams();
+        data.append('username', document.getElementById('addEmpName').value);
+        data.append('email', document.getElementById('addEmpEmail').value);
+        data.append('phoneNumber', '');
+        data.append('password', document.getElementById('addEmpPassword') ? document.getElementById('addEmpPassword').value : 'Welcome1!');
+        // jobId and ruleId need to be resolved from name
+        const roleName = document.getElementById('addEmpRole').value;
+        const deptName = document.getElementById('addEmpDept').value;
+        const role = rules.find(r => r.name === roleName);
+        const dept = departments.find(d => d.name === deptName);
+        data.append('ruleId', role ? role.id : '');
+        // jobId: we don't have it from name here, send empty to let backend handle
+        data.append('jobId', 1);
+        data.append('activeTab', 'employees');
+        fetch('/admin/employee/create', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+            .then(r => { if(r.redirected || r.ok) { showToast('msg_added'); closeModal('addEmployeeModal'); e.target.reset(); setTimeout(()=>location.reload(),1500); } })
+            .catch(() => showToast('msg_saved'));
+    });
+
+    window.openEditEmp = function(id) {
+        const emp = employees.find(e => e.id === id); if(!emp) return;
+        document.getElementById('editEmpId').value = emp.id;
+        document.getElementById('editEmpName').value = emp.name;
+        document.getElementById('editEmpRole').value = emp.role;
+        document.getElementById('editEmpDept').value = emp.department;
+        document.getElementById('editEmpJob').value = emp.jobTitle;
+        openModal('editEmployeeModal');
+    }
+
+    document.getElementById('editEmpForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editEmpId').value;
+        const data = new URLSearchParams();
+        data.append('userId', id);
+        data.append('username', document.getElementById('editEmpName').value);
+        data.append('email', document.getElementById('editEmpEmail') ? document.getElementById('editEmpEmail').value : '');
+        data.append('phoneNumber', '');
+        const roleName = document.getElementById('editEmpRole').value;
+        const role = rules.find(r => r.name === roleName);
+        data.append('ruleId', role ? role.id : '');
+        data.append('jobId', 1);
+        data.append('activeTab', 'employees');
+        fetch('/admin/employee/update', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+            .then(r => { if(r.redirected || r.ok) { showToast('msg_saved'); closeModal('editEmployeeModal'); setTimeout(()=>location.reload(),1500); } })
+            .catch(() => showToast('msg_saved'));
+    });
+
+    window.deleteEmp = function(id) {
+        if(confirm(i18n[currentLang].msg_delete)) {
+            const data = new URLSearchParams({ userId: id, activeTab: 'employees' });
+            fetch('/admin/employee/delete', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+                .then(() => { employees = employees.filter(e => e.id !== id); renderAll(); applyTranslations(); showToast('msg_saved'); setTimeout(()=>location.reload(),1500); })
+                .catch(() => { employees = employees.filter(e => e.id !== id); renderAll(); applyTranslations(); });
+        }
+    }
+
+    window.openProgress = function(id) {
+        currentSelectedEmpId = id; const emp = employees.find(e => e.id === id);
+        const courseLabel = currentLang === 'ar' ? 'دورة أساسيات السلامة' : 'Safety Foundations Course';
+        const gameLabel   = currentLang === 'ar' ? 'لعبة تحديد المخاطر'  : 'Hazard Identification Game';
+        document.getElementById('progressContent').innerHTML = `<div style="margin-bottom: 25px;"><h3 style="margin-bottom: 5px; font-size: 1.2rem; color: var(--text-main);">${emp.name}</h3><p style="color: var(--text-muted); font-size: 0.9rem;">${emp.role} • ${emp.jobTitle}</p></div><div><div class="progress-row"><span>${courseLabel}</span><span style="color: var(--primary);">${emp.courseProgress}%</span></div><div class="progress-bar-lg"><div class="progress-fill-lg ${emp.courseProgress < 50 ? 'danger' : ''}" style="width: ${emp.courseProgress}%;"></div></div><div class="progress-row" style="margin-top: 15px;"><span>${gameLabel}</span><span style="color: var(--primary);">${emp.gameProgress}%</span></div><div class="progress-bar-lg"><div class="progress-fill-lg ${emp.gameProgress < 50 ? 'danger' : ''}" style="width: ${emp.gameProgress}%;"></div></div></div>`;
+        openModal('progressModal');
+    }
+    window.resetProgress = function() { const emp = employees.find(e => e.id === currentSelectedEmpId); if(emp) { emp.courseProgress = 0; emp.gameProgress = 0; renderEmployees(); closeModal('progressModal'); showToast('msg_reset'); } }
+
+
+    // --- Departments Logic ---
+    function renderDepartments() {
+        const tbody = document.getElementById('deptTableBody'); tbody.innerHTML = '';
+        const scaleMap = { 'High': 'scale_high', 'Medium': 'scale_med', 'Low': 'scale_low' };
+        departments.forEach(d => {
+            const empCount = employees.filter(e => e.department === d.name).length;
+            const scalability = d.scalability || 'Medium';
+            const scaleColor = scalability === 'High' ? '#10b981' : scalability === 'Medium' ? '#f59e0b' : '#ef4444';
+            const scaleGlow  = scalability === 'High' ? 'rgba(16,185,129,0.18)' : scalability === 'Medium' ? 'rgba(245,158,11,0.18)' : 'rgba(239,68,68,0.18)';
+            const scaleLabel = i18n[currentLang][scaleMap[scalability]] || scalability;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight:600;">${d.name}</td>
+                <td>${d.category}</td>
+                <td><span style="background:${scaleGlow}; color:${scaleColor}; padding:4px 12px; border-radius:12px; font-size:0.8rem; font-weight:700; border:1px solid ${scaleColor}33;">${scaleLabel}</span></td>
+                <td>
+                  <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,0.12);color:var(--primary);padding:4px 12px;border-radius:12px;font-size:0.8rem;font-weight:700;border:1px solid rgba(59,130,246,0.25);">
+                    <i class="ph ph-users" style="font-size:0.9rem;"></i>${empCount}
+                  </span>
+                </td>
+                <td class="actions-cell">
+                    <div class="action-item"><span class="action-label" data-i18n="btn_edit">${i18n[currentLang].btn_edit}</span><button class="action-btn edit" onclick="openDeptForm(${d.id})"><i class="ph-fill ph-pencil-simple"></i></button></div>
+                    <div class="action-item"><span class="action-label" data-i18n="btn_delete">${i18n[currentLang].btn_delete}</span><button class="action-btn delete" onclick="deleteDept(${d.id})"><i class="ph-fill ph-trash"></i></button></div>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.openAddDeptPanel = function() {
+        document.getElementById('panelDeptName').value = '';
+        document.getElementById('addDeptPanel').classList.add('open');
+    }
+    window.closeAddDeptPanel = function() {
+        document.getElementById('addDeptPanel').classList.remove('open');
+    }
+    window.savePanelDept = function() {
+        const name = document.getElementById('panelDeptName').value;
+        const cat = document.getElementById('panelDeptCat').value;
+        if (!name) return;
+        const data = new URLSearchParams({ depTitle: name, departmentCapacity: 100, activeTab: 'departments' });
+        fetch('/admin/department/create', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+            .then(() => { showToast('msg_saved'); closeAddDeptPanel(); setTimeout(()=>location.reload(),1500); })
+            .catch(() => showToast('msg_saved'));
+    }
+
+    window.openDeptForm = function(id = null) {
+        if(id) {
+            const d = departments.find(x => x.id === id);
+            document.getElementById('deptId').value = d.id;
+            document.getElementById('deptName').value = d.name;
+            document.getElementById('deptCat').value = d.category;
+        } else { document.getElementById('deptForm').reset(); document.getElementById('deptId').value = ''; }
+        openModal('deptModal');
+    }
+
+    document.getElementById('deptForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('deptId').value;
+        const name = document.getElementById('deptName').value;
+        if(id) {
+            const data = new URLSearchParams({ depId: id, depTitle: name, departmentCapacity: 100, activeTab: 'departments' });
+            fetch('/admin/department/update', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+                .then(() => { showToast('msg_saved'); closeModal('deptModal'); setTimeout(()=>location.reload(),1500); });
+        } else {
+            const data = new URLSearchParams({ depTitle: name, departmentCapacity: 100, activeTab: 'departments' });
+            fetch('/admin/department/create', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+                .then(() => { showToast('msg_saved'); closeModal('deptModal'); setTimeout(()=>location.reload(),1500); });
+        }
+    });
+
+    window.deleteDept = function(id) {
+        if(confirm(i18n[currentLang].msg_delete)) {
+            const data = new URLSearchParams({ depId: id, activeTab: 'departments' });
+            fetch('/admin/department/delete', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+                .then(() => { departments = departments.filter(x => x.id !== id); populateSelects(); renderAll(); applyTranslations(); showToast('msg_saved'); setTimeout(()=>location.reload(),1500); });
+        }
+    }
+
+
+    // --- Rules Logic ---
+    function renderRules() {
+        const tbody = document.getElementById('ruleTableBody'); tbody.innerHTML = '';
+        rules.forEach(r => {
+            const usersCount = employees.filter(e => e.role === r.name).length;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight:600;">${r.name}</td>
+                <td><span style="font-size:0.8rem; color:var(--text-muted);">${r.permissions}</span></td>
+                <td><span style="background:var(--primary-glow); color:var(--text-main); padding:4px 10px; border-radius:12px; font-size:0.8rem; font-weight:bold;">${usersCount} ${i18n[currentLang].users_label}</span></td>
+                <td class="actions-cell">
+                    <div class="action-item"><span class="action-label" data-i18n="btn_view_members">${i18n[currentLang].btn_view_members}</span><button class="action-btn view" onclick="openMembers(${r.id})"><i class="ph-fill ph-users-three"></i></button></div>
+                    <div class="action-item"><span class="action-label" data-i18n="btn_edit">${i18n[currentLang].btn_edit}</span><button class="action-btn edit" onclick="openRuleForm(${r.id})"><i class="ph-fill ph-pencil-simple"></i></button></div>
+                    <div class="action-item"><span class="action-label" data-i18n="btn_delete">${i18n[currentLang].btn_delete}</span><button class="action-btn delete" onclick="deleteRule(${r.id})"><i class="ph-fill ph-trash"></i></button></div>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.openAddRulePanel = function() {
+        document.getElementById('addRulePanel').classList.add('open');
+    }
+    window.closeAddRulePanel = function() {
+        document.getElementById('addRulePanel').classList.remove('open');
+    }
+    window.savePanelRule = function() {
+        const name = document.getElementById('panelRuleName').value;
+        if (!name) return;
+        const data = new URLSearchParams({ position: name, activeTab: 'rules' });
+        fetch('/admin/rule/create', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+            .then(() => { showToast('msg_saved'); closeAddRulePanel(); setTimeout(()=>location.reload(),1500); });
+    }
+
+    window.openRuleForm = function(id = null) {
+        if(id) {
+            const r = rules.find(x => x.id === id);
+            document.getElementById('ruleId').value = r.id;
+            document.getElementById('ruleName').value = r.name;
+            document.getElementById('rulePerm').value = r.permissions;
+        } else { document.getElementById('ruleForm').reset(); document.getElementById('ruleId').value = ''; }
+        openModal('ruleModal');
+    }
+
+    document.getElementById('ruleForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('ruleId').value;
+        const name = document.getElementById('ruleName').value;
+        if(id) {
+            const data = new URLSearchParams({ ruleId: id, position: name, activeTab: 'rules' });
+            fetch('/admin/rule/update', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+                .then(() => { showToast('msg_saved'); closeModal('ruleModal'); setTimeout(()=>location.reload(),1500); });
+        } else {
+            const data = new URLSearchParams({ position: name, activeTab: 'rules' });
+            fetch('/admin/rule/create', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+                .then(() => { showToast('msg_saved'); closeModal('ruleModal'); setTimeout(()=>location.reload(),1500); });
+        }
+    });
+
+    window.deleteRule = function(id) {
+        if(confirm(i18n[currentLang].msg_delete)) {
+            const data = new URLSearchParams({ ruleId: id, activeTab: 'rules' });
+            fetch('/admin/rule/delete', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: data })
+                .then(() => { rules = rules.filter(x => x.id !== id); populateSelects(); renderAll(); applyTranslations(); showToast('msg_saved'); setTimeout(()=>location.reload(),1500); });
+        }
+    }
+
+    window.openMembers = function(id) {
+        const r = rules.find(x => x.id === id);
+        document.getElementById('membersModalSubtitle').textContent = `${i18n[currentLang].members_modal_prefix}: ${r.name}`;
+        
+        const container = document.getElementById('memberListContainer'); container.innerHTML = '';
+        const members = employees.filter(e => e.role === r.name);
+        
+        if(members.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding: 20px;">${i18n[currentLang].no_members}</p>`; }
+        else {
+            members.forEach(m => {
+                const row = document.createElement('div'); row.className = 'member-row';
+                row.innerHTML = `
+                    <div class="member-info"><span class="member-name">${m.name}</span><span class="member-dept">${m.department}</span></div>
+                    <div class="member-actions">
+                        <select class="rule-select-inline">
+                            ${rules.map(ruleOpt => `<option value="${ruleOpt.name}" ${ruleOpt.name === r.name ? 'selected' : ''}>${ruleOpt.name}</option>`).join('')}
+                        </select>
+                        <button class="btn-danger-solid" style="padding: 5px 10px; font-size: 0.8rem;">${i18n[currentLang].btn_remove}</button>
+                    </div>`;
+
+                // Attach events after appending
+                container.appendChild(row);
+
+                const select = row.querySelector('.rule-select-inline');
+                select.addEventListener('change', () => {
+                    changeEmpRule(m.id, select.value, row);
+                });
+
+                const removeBtn = row.querySelector('.btn-danger-solid');
+                removeBtn.addEventListener('click', () => {
+                    row.classList.add('exit');
+                    setTimeout(() => { removeEmpRule(m.id, r.id); }, 420);
+                });
+            });
+        }
+        openModal('membersModal');
+    }
+
+    window.changeEmpRule = function(empId, newRule, rowEl) {
+        const emp = employees.find(e => e.id === empId); if(!emp) return;
+        emp.role = newRule;
+        renderAll(); applyTranslations(); showToast('msg_saved');
+        // Animate the row out, then refresh modal
+        const subtitleText = document.getElementById('membersModalSubtitle').textContent;
+        const colonIdx = subtitleText.indexOf(':');
+        const currentRuleName = colonIdx !== -1 ? subtitleText.slice(colonIdx + 1).trim() : '';
+        const r = rules.find(x => x.name === currentRuleName);
+        if (r) {
+            // Find the row element and animate it out
+            if (rowEl) {
+                rowEl.classList.add('exit');
+                setTimeout(() => { if(r) openMembers(r.id); }, 420);
+            } else {
+                openMembers(r.id);
+            }
+        }
+    }
+    window.removeEmpRule = function(empId, ruleId) {
+        const emp = employees.find(e => e.id === empId); if(emp) emp.role = i18n[currentLang].unassigned;
+        renderAll(); applyTranslations(); showToast('msg_saved');
+        openMembers(ruleId);
+    }
+
+    window.openModal = function(id) { document.getElementById(id).classList.add('active'); }
+    window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
+
+    // =====================================================
+    // ===== COURSES / MODULES / VIDEOS / ASSESSMENT =====
+    // =====================================================
+
+    let nextCourseId = 4, nextModuleId = 10, nextVideoId = 20, nextQuestionId = 100;
+    let currentCourseId = null, currentModuleId = null;
+    let isMultiAnswer = false;
+    let editingQuestionId = null;
+    let dragSrcIndex = null;
+
+    let courses = [
+        { id: 1, title: "Safety Foundations", desc: "Core safety principles for all employees on the factory floor.", category: "Safety", level: "Beginner" },
+        { id: 2, title: "Hazard Identification", desc: "Learn to identify and report workplace hazards effectively.", category: "Safety", level: "Intermediate" },
+        { id: 3, title: "Emergency Procedures", desc: "Step-by-step emergency response protocols and evacuation plans.", category: "Emergency", level: "Advanced" }
+    ];
+
+    let modules = [
+        { id: 1, courseId: 1, name: "Introduction to Safety", desc: "What is workplace safety and why it matters" },
+        { id: 2, courseId: 1, name: "PPE Essentials", desc: "Personal Protective Equipment usage" },
+        { id: 3, courseId: 1, name: "Assessment", desc: "Final quiz", isAssessment: true },
+        { id: 4, courseId: 2, name: "Types of Hazards", desc: "Physical, chemical and biological hazards" },
+        { id: 5, courseId: 2, name: "Reporting Procedures", desc: "How to file a hazard report" },
+        { id: 6, courseId: 2, name: "Assessment", desc: "Test your knowledge", isAssessment: true },
+        { id: 7, courseId: 3, name: "Evacuation Routes", desc: "Maps and emergency exits" },
+        { id: 8, courseId: 3, name: "First Aid Basics", desc: "What to do in the first 5 minutes" },
+        { id: 9, courseId: 3, name: "Assessment", desc: "Emergency procedures quiz", isAssessment: true }
+    ];
+
+    let videos = [
+        { id: 1, moduleId: 1, title: "Welcome & Overview", duration: "05:30", est: 8, url: "", order: 0 },
+        { id: 2, moduleId: 1, title: "Core Safety Principles", duration: "12:45", est: 18, url: "", order: 1 },
+        { id: 3, moduleId: 2, title: "Types of PPE", duration: "08:20", est: 12, url: "", order: 0 },
+        { id: 4, moduleId: 2, title: "How to Wear PPE Correctly", duration: "10:10", est: 15, url: "", order: 1 },
+        { id: 5, moduleId: 4, title: "Physical Hazards Explained", duration: "09:55", est: 14, url: "", order: 0 },
+        { id: 6, moduleId: 5, title: "Filling a Hazard Report", duration: "06:40", est: 10, url: "", order: 0 },
+        { id: 7, moduleId: 7, title: "Reading the Evacuation Map", duration: "07:15", est: 10, url: "", order: 0 },
+        { id: 8, moduleId: 8, title: "CPR & First Aid Steps", duration: "14:00", est: 20, url: "", order: 0 }
+    ];
+
+    let questions = [
+        { id: 1, moduleId: 3, text: "What does PPE stand for?", isMulti: false, choices: [
+            { text: "Personal Protective Equipment", correct: true },
+            { text: "Primary Protection Element", correct: false },
+            { text: "Protective Personnel Essentials", correct: false }
+        ]},
+        { id: 2, moduleId: 3, text: "Which of the following are PPE items? (Select all that apply)", isMulti: true, choices: [
+            { text: "Hard Hat", correct: true },
+            { text: "Steel-toed Boots", correct: true },
+            { text: "Regular T-shirt", correct: false },
+            { text: "Safety Goggles", correct: true }
+        ]}
+    ];
+
+    // --- Helper: navigate between sections with animation ---
+    window.navigateTo = function(tab, extraFn) {
+        const sectionMap = {
+            'employees': 'employeesSection', 'departments': 'departmentsSection',
+            'rules': 'rulesSection', 'courses': 'coursesSection',
+            'modules': 'modulesSection', 'videos': 'videosSection',
+            'assessment': 'assessmentSection'
+        };
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        const matchNav = document.querySelector(`.nav-item[data-tab="${tab}"]`);
+        if (matchNav) matchNav.classList.add('active');
+
+        const currentVisible = [...tabSections].find(s => s.style.display !== 'none');
+        function showTarget() {
+            tabSections.forEach(sec => { sec.style.display = 'none'; sec.style.animation = ''; });
+            const targetEl = document.getElementById(sectionMap[tab] || 'otherSection');
+            targetEl.style.display = 'block';
+            targetEl.style.animation = 'none';
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                targetEl.style.animation = 'sectionFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both';
+            }));
+            if (extraFn) extraFn();
+            applyTranslations();
+        }
+        if (currentVisible) {
+            currentVisible.style.animation = 'sectionFadeOut 0.22s ease forwards';
+            setTimeout(showTarget, 200);
+        } else { showTarget(); }
+    };
+
+    // ===== COURSES =====
+    function renderCourses() {
+        const grid = document.getElementById('coursesGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        courses.forEach(c => {
+            const modCount = modules.filter(m => m.courseId === c.id).length;
+            const vidCount = videos.filter(v => modules.find(m => m.id === v.moduleId && m.courseId === c.id)).length;
+            const lvlColor = c.level === 'Beginner' ? '#10b981' : c.level === 'Intermediate' ? '#f59e0b' : '#ef4444';
+            const card = document.createElement('div');
+            card.className = 'course-card';
+            card.innerHTML = `
+                <div class="course-card-icon"><i class="ph ph-books"></i></div>
+                <div class="course-card-title">${c.title}</div>
+                <div class="course-card-desc">${c.desc || ''}</div>
+                <div class="course-card-meta">
+                    <span><i class="ph ph-stack"></i> ${modCount} ${i18n[currentLang].txt_modules_count}</span>
+                    <span><i class="ph ph-video-camera"></i> ${vidCount} ${i18n[currentLang].txt_videos_count}</span>
+                    <span style="color:${lvlColor};font-weight:700;">${c.level}</span>
+                </div>
+                <div class="course-card-actions">
+                    <button class="btn-sm primary" onclick="openCourseModules(${c.id})"><i class="ph ph-stack"></i> ${i18n[currentLang].lbl_open_modules}</button>
+                    <button class="btn-sm ghost" onclick="openCourseForm(${c.id})"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="btn-sm danger" onclick="deleteCourse(${c.id})"><i class="ph ph-trash"></i></button>
+                </div>`;
+            card.onclick = function(e) {
+                if(e.target.closest('.course-card-actions')) return;
+                openCourseModules(c.id);
+            };
+            grid.appendChild(card);
+        });
+    }
+
+    window.openCourseForm = function(id = null) {
+        document.getElementById('courseForm').reset();
+        document.getElementById('courseId').value = '';
+        document.getElementById('courseModalTitle').textContent = id ? 'Edit Course' : 'New Course';
+        if (id) {
+            const c = courses.find(x => x.id === id);
+            if (c) { 
+                document.getElementById('courseId').value = c.id; 
+                document.getElementById('courseTitle').value = c.title; 
+                document.getElementById('courseDesc').value = c.desc || ''; 
+                setDropdownValue('categoryDropdown', c.category || 'Safety'); 
+                setDropdownValue('levelDropdown', c.level || 'Beginner'); 
+            }
+        } else {
+            setDropdownValue('categoryDropdown', 'Safety'); 
+            setDropdownValue('levelDropdown', 'Beginner');
+        }
+        openModal('courseModal');
+    };
+    document.getElementById('courseForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const id = document.getElementById('courseId').value;
+        const data = { title: document.getElementById('courseTitle').value, desc: document.getElementById('courseDesc').value, category: document.getElementById('courseCategory').value, level: document.getElementById('courseLevel').value };
+        if (id) { Object.assign(courses.find(c => c.id === parseInt(id)), data); }
+        else { courses.push({ id: nextCourseId++, ...data }); }
+        closeModal('courseModal'); renderCourses(); showToast('msg_saved');
+    });
+    window.deleteCourse = function(id) {
+        showConfirmModal('msg_del_course', () => {
+            const mids = modules.filter(m => m.courseId === id).map(m => m.id);
+            videos = videos.filter(v => !mids.includes(v.moduleId));
+            questions = questions.filter(q => !mids.includes(q.moduleId));
+            modules = modules.filter(m => m.courseId !== id);
+            courses = courses.filter(c => c.id !== id);
+            renderCourses(); showToast('msg_saved');
+        });
+    };
+
+    // ===== MODULES =====
+    window.openCourseModules = function(courseId) {
+        currentCourseId = courseId;
+        const c = courses.find(x => x.id === courseId);
+        document.getElementById('modulesBreadcrumbCourse').textContent = c ? c.title : '';
+        navigateTo('modules', renderModules);
+    };
+
+    function renderModules() {
+        const list = document.getElementById('modulesList');
+        if (!list) return;
+        const mods = modules.filter(m => m.courseId === currentCourseId);
+        if (mods.length === 0) { list.innerHTML = `<div class="empty-state"><i class="ph ph-stack" style="font-size:2.5rem;margin-bottom:10px;color:var(--primary);opacity:0.5;display:block;"></i><p>${i18n[currentLang].txt_no_modules}</p></div>`; return; }
+        list.innerHTML = '';
+        mods.forEach((m, idx) => {
+            const vCount = videos.filter(v => v.moduleId === m.id).length;
+            const qCount = questions.filter(q => q.moduleId === m.id).length;
+            const card = document.createElement('div');
+            card.className = 'module-card';
+            const icon = m.isAssessment ? 'ph-exam' : 'ph-play-circle';
+            const iconColor = m.isAssessment ? '#a855f7' : 'var(--primary)';
+            card.innerHTML = `
+                <div class="module-card-header">
+                    <div class="module-card-left">
+                        <div class="module-number"><i class="ph ${icon}" style="color:${iconColor};"></i></div>
+                        <div class="module-info">
+                            <h4>${m.name}</h4>
+                            <span>${m.isAssessment ? qCount + ' ' + i18n[currentLang].txt_videos_count.replace('فيديو','سؤال').replace('videos','questions') : vCount + ' ' + i18n[currentLang].txt_videos_count}</span>
+                        </div>
+                    </div>
+                    <div class="module-card-actions">
+                        ${m.isAssessment
+                            ? `<button class="btn-sm primary" onclick="openAssessment(${m.id})"><i class="ph ph-exam"></i> ${i18n[currentLang].lbl_open_assessment}</button>`
+                            : `<button class="btn-sm primary" onclick="openModuleVideos(${m.id})"><i class="ph ph-video-camera"></i> ${i18n[currentLang].lbl_open_videos}</button>`}
+                        <button class="btn-sm ghost" onclick="openModuleForm(${m.id})"><i class="ph ph-pencil-simple"></i></button>
+                        <button class="btn-sm danger" onclick="deleteModule(${m.id})"><i class="ph ph-trash"></i></button>
+                    </div>
+                </div>`;
+            card.onclick = function(e) {
+                if(e.target.closest('.module-card-actions')) return;
+                if(m.isAssessment) openAssessment(m.id);
+                else openModuleVideos(m.id);
+            };
+            list.appendChild(card);
+        });
+    }
+
+    window.openModuleForm = function(id = null) {
+        document.getElementById('moduleForm').reset();
+        document.getElementById('moduleId').value = '';
+        document.getElementById('moduleModalTitle').textContent = id ? 'Edit Module' : 'New Module';
+        if (id) {
+            const m = modules.find(x => x.id === id);
+            if (m) { document.getElementById('moduleId').value = m.id; document.getElementById('moduleName').value = m.name; document.getElementById('moduleDesc').value = m.desc || ''; }
+        }
+        openModal('moduleModal');
+    };
+    document.getElementById('moduleForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const id = document.getElementById('moduleId').value;
+        const data = { name: document.getElementById('moduleName').value, desc: document.getElementById('moduleDesc').value };
+        if (id) { Object.assign(modules.find(m => m.id === parseInt(id)), data); }
+        else { modules.push({ id: nextModuleId++, courseId: currentCourseId, ...data, isAssessment: false }); }
+        closeModal('moduleModal'); renderModules(); showToast('msg_saved');
+    });
+    window.deleteModule = function(id) {
+        showConfirmModal('msg_del_module', () => {
+            videos = videos.filter(v => v.moduleId !== id);
+            questions = questions.filter(q => q.moduleId !== id);
+            modules = modules.filter(m => m.id !== id);
+            renderModules(); showToast('msg_saved');
+        });
+    };
+    window.goBackToModules = function() { navigateTo('modules', renderModules); };
+
+    // ===== VIDEOS =====
+    window.openModuleVideos = function(moduleId) {
+        currentModuleId = moduleId;
+        const m = modules.find(x => x.id === moduleId);
+        const c = courses.find(x => x.id === currentCourseId);
+        document.getElementById('videosBreadcrumbCourse').textContent = c ? c.title : '';
+        document.getElementById('videosBreadcrumbModule').textContent = m ? m.name : '';
+        navigateTo('videos', renderVideos);
+    };
+
+    function renderVideos() {
+        const container = document.getElementById('videosContainer');
+        if (!container) return;
+        const vids = videos.filter(v => v.moduleId === currentModuleId).sort((a, b) => a.order - b.order);
+        if (vids.length === 0) { container.innerHTML = `<div class="empty-state"><i class="ph ph-video-camera" style="font-size:2.5rem;margin-bottom:10px;color:var(--primary);opacity:0.5;display:block;"></i><p>${i18n[currentLang].txt_no_videos}</p></div>`; return; }
+        container.innerHTML = '<div class="videos-list" id="videosDragList"></div>';
+        const dragList = document.getElementById('videosDragList');
+        vids.forEach((v, idx) => {
+            const item = document.createElement('div');
+            item.className = 'video-item';
+            item.draggable = true;
+            item.dataset.id = v.id;
+            item.innerHTML = `
+                <div class="drag-handle"><i class="ph ph-dots-six-vertical"></i></div>
+                <div class="video-thumb"><i class="ph-fill ph-play-circle"></i></div>
+                <div class="video-details">
+                    <div class="video-title">${v.title}</div>
+                    <div class="video-meta">
+                        <span><i class="ph ph-clock"></i> ${v.duration || '--:--'}</span>
+                        <span><i class="ph ph-timer"></i> ${i18n[currentLang].txt_est} ${v.est || '?'} ${i18n[currentLang].txt_min}</span>
+                    </div>
+                </div>
+                <div class="video-actions">
+                    <button class="btn-sm ghost" onclick="openVideoForm(${v.id})"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="btn-sm danger" onclick="deleteVideo(${v.id})"><i class="ph ph-trash"></i></button>
+                </div>`;
+            // Drag & Drop
+            item.addEventListener('dragstart', e => { dragSrcIndex = idx; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+            item.addEventListener('dragend', () => { item.classList.remove('dragging'); document.querySelectorAll('.video-item').forEach(el => el.classList.remove('drag-over')); });
+            item.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; document.querySelectorAll('.video-item').forEach(el => el.classList.remove('drag-over')); item.classList.add('drag-over'); });
+            item.addEventListener('drop', e => {
+                e.preventDefault();
+                if (dragSrcIndex === null || dragSrcIndex === idx) return;
+                const sorted = videos.filter(v => v.moduleId === currentModuleId).sort((a, b) => a.order - b.order);
+                const moved = sorted.splice(dragSrcIndex, 1)[0];
+                sorted.splice(idx, 0, moved);
+                sorted.forEach((v, i) => { const orig = videos.find(x => x.id === v.id); if (orig) orig.order = i; });
+                dragSrcIndex = null;
+                renderVideos();
+            });
+            dragList.appendChild(item);
+        });
+    }
+
+    window.openVideoForm = function(id = null) {
+        document.getElementById('videoForm').reset();
+        document.getElementById('videoId').value = '';
+        document.getElementById('videoModalTitle').textContent = id ? 'Edit Video' : 'New Video';
+        if (id) {
+            const v = videos.find(x => x.id === id);
+            if (v) { document.getElementById('videoId').value = v.id; document.getElementById('videoTitle').value = v.title; document.getElementById('videoDuration').value = v.duration || ''; document.getElementById('videoEst').value = v.est || ''; document.getElementById('videoUrl').value = v.url || ''; }
+        }
+        openModal('videoModal');
+    };
+    document.getElementById('videoForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const id = document.getElementById('videoId').value;
+        const data = { title: document.getElementById('videoTitle').value, duration: document.getElementById('videoDuration').value, est: parseInt(document.getElementById('videoEst').value) || 0, url: document.getElementById('videoUrl').value };
+        if (id) { Object.assign(videos.find(v => v.id === parseInt(id)), data); }
+        else { const maxOrder = videos.filter(v => v.moduleId === currentModuleId).length; videos.push({ id: nextVideoId++, moduleId: currentModuleId, ...data, order: maxOrder }); }
+        closeModal('videoModal'); renderVideos(); showToast('msg_saved');
+    });
+    window.deleteVideo = function(id) {
+        showConfirmModal('msg_del_video', () => {
+            videos = videos.filter(v => v.id !== id);
+            renderVideos(); showToast('msg_saved');
+        });
+    };
+
+    // ===== ASSESSMENT =====
+    window.openAssessment = function(moduleId) {
+        currentModuleId = moduleId;
+        const m = modules.find(x => x.id === moduleId);
+        const c = courses.find(x => x.id === currentCourseId);
+        document.getElementById('assessBreadcrumbCourse').textContent = c ? c.title : '';
+        document.getElementById('assessBreadcrumbModule').textContent = m ? m.name : '';
+        closeAddQuestionPanel();
+        navigateTo('assessment', renderQuestions);
+    };
+
+    function renderQuestions() {
+        const list = document.getElementById('questionsList');
+        if (!list) return;
+        const qs = questions.filter(q => q.moduleId === currentModuleId);
+        if (qs.length === 0) {
+            list.innerHTML = `<div class="empty-questions"><i class="ph ph-question"></i><p>${i18n[currentLang].txt_no_questions}</p></div>`;
+            return;
+        }
+        list.innerHTML = '';
+        qs.forEach((q, idx) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            const badge = q.isMulti
+                ? `<span class="question-type-badge multi">${i18n[currentLang].txt_multi_answer}</span>`
+                : `<span class="question-type-badge single">${i18n[currentLang].txt_single_answer}</span>`;
+            const choicesHTML = q.choices.map(ch => `
+                <div class="choice-item ${ch.correct ? 'correct' : 'wrong'}">
+                    <i class="ph ${ch.correct ? 'ph-check-circle' : 'ph-x-circle'}"></i>
+                    ${ch.text}
+                </div>`).join('');
+            card.innerHTML = `
+                <div class="question-header">
+                    <div><div class="question-number">Q${idx + 1}</div><div class="question-text">${q.text}</div></div>
+                    ${badge}
+                </div>
+                <div class="choices-list">${choicesHTML}</div>
+                <div class="question-footer">
+                    <button class="btn-sm ghost" onclick="editQuestion(${q.id})"><i class="ph ph-pencil-simple"></i> ${i18n[currentLang].lbl_edit_video}</button>
+                    <button class="btn-sm danger" onclick="deleteQuestion(${q.id})"><i class="ph ph-trash"></i> ${i18n[currentLang].lbl_delete_video}</button>
+                </div>`;
+            list.appendChild(card);
+        });
+    }
+
+    // Add Question Panel
+    window.openAddQuestionPanel = function() {
+        editingQuestionId = null;
+        isMultiAnswer = false;
+        document.getElementById('questionText').value = '';
+        document.getElementById('multiAnswerCheck').checked = false;
+        document.getElementById('choicesContainer').innerHTML = '';
+        addChoice(); addChoice(); addChoice();
+        document.getElementById('addQuestionPanel').classList.add('open');
+        document.getElementById('addQuestionPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    window.closeAddQuestionPanel = function() {
+        document.getElementById('addQuestionPanel').classList.remove('open');
+    };
+    window.toggleMultiAnswer = function() {
+        isMultiAnswer = document.getElementById('multiAnswerCheck').checked;
+        document.querySelectorAll('.choice-row input[type="checkbox"], .choice-row input[type="radio"]').forEach(inp => {
+            inp.type = isMultiAnswer ? 'checkbox' : 'radio';
+            inp.name = isMultiAnswer ? '' : 'correct_choice';
+        });
+    };
+    window.addChoice = function() {
+        const container = document.getElementById('choicesContainer');
+        const row = document.createElement('div');
+        row.className = 'choice-row';
+        const inputType = isMultiAnswer ? 'checkbox' : 'radio';
+        row.innerHTML = `
+            <input type="${inputType}" name="correct_choice" onchange="markCorrect(this)">
+            <input type="text" placeholder="Choice text...">
+            <button type="button" class="remove-choice" onclick="removeChoice(this)"><i class="ph ph-x"></i></button>`;
+        row.querySelector(`input[type="${inputType}"]`).addEventListener('change', function() { markCorrect(this); });
+        container.appendChild(row);
+    };
+    window.markCorrect = function(inp) {
+        if (!isMultiAnswer) {
+            document.querySelectorAll('.choice-row').forEach(r => r.classList.remove('is-correct'));
+        }
+        inp.closest('.choice-row').classList.toggle('is-correct', inp.checked);
+    };
+    window.removeChoice = function(btn) {
+        const rows = document.querySelectorAll('.choice-row');
+        if (rows.length <= 2) return;
+        btn.closest('.choice-row').remove();
+    };
+    window.saveQuestion = function() {
+        const text = document.getElementById('questionText').value.trim();
+        if (!text) return;
+        const rows = document.querySelectorAll('.choice-row');
+        const choices = [];
+        rows.forEach(row => {
+            const t = row.querySelector('input[type="text"]').value.trim();
+            const correct = row.querySelector('input[type="checkbox"], input[type="radio"]').checked;
+            if (t) choices.push({ text: t, correct });
+        });
+        if (choices.length < 2) return;
+        if (editingQuestionId) {
+            const q = questions.find(x => x.id === editingQuestionId);
+            if (q) { q.text = text; q.isMulti = isMultiAnswer; q.choices = choices; }
+        } else {
+            questions.push({ id: nextQuestionId++, moduleId: currentModuleId, text, isMulti: isMultiAnswer, choices });
+        }
+        closeAddQuestionPanel();
+        renderQuestions();
+        showToast('msg_saved');
+    };
+    window.editQuestion = function(id) {
+        const q = questions.find(x => x.id === id);
+        if (!q) return;
+        editingQuestionId = id;
+        isMultiAnswer = q.isMulti;
+        document.getElementById('questionText').value = q.text;
+        document.getElementById('multiAnswerCheck').checked = q.isMulti;
+        const container = document.getElementById('choicesContainer');
+        container.innerHTML = '';
+        q.choices.forEach(ch => {
+            const row = document.createElement('div');
+            row.className = 'choice-row' + (ch.correct ? ' is-correct' : '');
+            const inputType = q.isMulti ? 'checkbox' : 'radio';
+            row.innerHTML = `
+                <input type="${inputType}" name="correct_choice" ${ch.correct ? 'checked' : ''} onchange="markCorrect(this)">
+                <input type="text" value="${ch.text}" placeholder="Choice text...">
+                <button type="button" class="remove-choice" onclick="removeChoice(this)"><i class="ph ph-x"></i></button>`;
+            container.appendChild(row);
+        });
+        document.getElementById('addQuestionPanel').classList.add('open');
+        document.getElementById('addQuestionPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    window.deleteQuestion = function(id) {
+        showConfirmModal('msg_del_question', () => {
+            questions = questions.filter(q => q.id !== id);
+            renderQuestions(); showToast('msg_saved');
+        });
+    };
+
+    // Hook courses into renderAll
+    const _origRenderAll = renderAll;
+    function renderAll() {
+        renderEmployees();
+        renderDepartments();
+        renderRules();
+        renderCourses();
+    }
+
+    // =====================================================
+
+    // Run init
+    init();
+
+</script>
+</body>
+</html>

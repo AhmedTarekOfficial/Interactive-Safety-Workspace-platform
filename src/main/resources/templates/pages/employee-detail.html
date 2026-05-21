@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:attr="data-theme=${theme}, dir=${lang == 'ar' ? 'rtl' : 'ltr'}">
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+    <style>
+        body { background: var(--bg-surface); margin: 0; padding: 0; font-family: var(--font-body); }
+        [dir="rtl"] body { font-family: var(--font-arabic); }
+    </style>
+</head>
+<body>
+<div style="padding: 22px 24px;">
+
+    <!-- Header row -->
+    <div class="detail-header">
+        <div class="detail-avatar"
+             th:style="'background: linear-gradient(135deg,' + (${employee.safetyScore >= 80} ? '#10b981,#059669' : (${employee.safetyScore >= 50} ? '#3b82f6,#1d4ed8' : (${employee.safetyScore >= 20} ? '#f59e0b,#b45309' : '#ef4444,#991b1b'))) + ')'"
+             th:text="${employee.avatarInitials}"></div>
+        <div class="detail-meta">
+            <div class="detail-name" th:text="${lang == 'ar'} ? ${employee.nameAr} : ${employee.name}"></div>
+            <div class="detail-sub" th:text="${employee.email}"></div>
+            <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <span th:class="'badge badge-' + ${employee.status.name().toLowerCase()}"
+                      th:switch="${employee.status.name()}">
+                    <span th:case="'ACTIVE'">🟢 <span th:text="${lang == 'ar'} ? 'نشط' : 'Active'"></span></span>
+                    <span th:case="'PROCRASTINATOR'">🔴 <span th:text="${lang == 'ar'} ? 'متكاسل' : 'Procrastinator'"></span></span>
+                    <span th:case="'COMPLETED'">🏆 <span th:text="${lang == 'ar'} ? 'مكتمل' : 'Completed'"></span></span>
+                </span>
+                <span style="font-size:12px;color:var(--text-muted)"
+                      th:text="${lang == 'ar'} ? ${employee.departmentAr} : ${employee.department}"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Score boxes -->
+    <div class="detail-scores">
+        <div class="score-box">
+            <div class="score-num"
+                 th:style="'color:' + (${employee.safetyScore >= 80} ? '#10b981' : (${employee.safetyScore >= 50} ? '#f59e0b' : '#ef4444'))"
+                 th:text="${employee.safetyScore} + '%'"></div>
+            <div class="score-lbl" th:text="${lang == 'ar'} ? 'نقاط السلامة' : 'Safety Score'"></div>
+        </div>
+        <div class="score-box">
+            <div class="score-num"
+                 th:style="'color:' + (${employee.gameProgress >= 100} ? '#10b981' : (${employee.gameProgress > 0} ? '#3b82f6' : '#94a3b8'))"
+                 th:text="${employee.gameProgress} + '%'"></div>
+            <div class="score-lbl" th:text="${lang == 'ar'} ? 'اللعبة التفاعلية' : 'Interactive Game'"></div>
+        </div>
+    </div>
+
+    <!-- Last active / Deadline row -->
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+        <div style="background:var(--bg-surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;flex:1;min-width:130px">
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px"
+                 th:text="${lang == 'ar'} ? 'آخر نشاط' : 'Last Active'"></div>
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary)"
+                 th:text="${employee.daysSinceActive == 0} ? (${lang == 'ar'} ? 'اليوم' : 'Today') : (${employee.daysSinceActive == 1} ? (${lang == 'ar'} ? 'أمس' : 'Yesterday') : (${employee.daysSinceActive} + ' ' + (${lang == 'ar'} ? 'أيام مضت' : 'days ago')))"></div>
+        </div>
+        <div style="background:var(--bg-surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;flex:1;min-width:130px">
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px"
+                 th:text="${lang == 'ar'} ? 'الموعد النهائي' : 'Training Deadline'"></div>
+            <div style="font-size:14px;font-weight:600"
+                 th:style="'color:' + (${employee.trainingDeadline != null} ? 'var(--text-primary)' : 'var(--text-muted)')"
+                 th:text="${employee.trainingDeadline != null} ? ${employee.trainingDeadline} : (${lang == 'ar'} ? 'غير محدد' : 'Not set')"></div>
+        </div>
+    </div>
+
+    <!-- Courses section -->
+    <div class="section-label" th:text="${lang == 'ar'} ? 'الدورات التدريبية' : 'Training Courses'"></div>
+
+    <div th:if="${employee.enrollments.isEmpty()}" style="color:var(--text-muted);font-size:13px;padding:12px 0"
+         th:text="${lang == 'ar'} ? 'لا توجد دورات مسجلة' : 'No courses enrolled'"></div>
+
+    <div th:each="en : ${employee.enrollments}" class="course-row">
+        <span class="course-icon" th:text="${en.courseIcon}"></span>
+        <div class="course-info">
+            <div class="course-name" th:text="${lang == 'ar'} ? ${en.courseTitleAr} : ${en.courseTitle}"></div>
+            <div class="course-deadline"
+                 th:if="${en.deadline != null}"
+                 th:text="(${lang == 'ar'} ? 'الموعد: ' : 'Due: ') + ${en.deadline}"
+                 th:style="${en.overdue} ? 'color:#ef4444' : ''"></div>
+        </div>
+        <div class="course-progress">
+            <div class="progress-wrap">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill"
+                         th:style="'width:' + ${en.progress} + '%; background:' + (${en.progress >= 100} ? '#10b981' : (${en.progress >= 50} ? '#3b82f6' : '#f59e0b'))"></div>
+                </div>
+                <span class="progress-pct" th:text="${en.progress} + '%'"></span>
+            </div>
+        </div>
+        <!-- Drop from this course -->
+        <form th:action="@{'/employees/' + ${employee.id} + '/drop-course/' + ${en.courseId}}" method="post" style="margin:0">
+            <input type="hidden" name="lang"  th:value="${lang}"/>
+            <input type="hidden" name="theme" th:value="${theme}"/>
+            <button type="submit" class="btn-icon danger"
+                    th:title="${lang == 'ar'} ? 'إلغاء الدورة' : 'Drop course'"
+                    onclick="return confirm(this.getAttribute('data-confirm'))"
+                    th:attr="data-confirm=${lang == 'ar'} ? 'إلغاء هذه الدورة؟' : 'Drop this course?'">🗑</button>
+        </form>
+    </div>
+
+    <!-- Actions row at bottom -->
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap">
+        <!-- Reset Progress -->
+        <form th:action="@{'/employees/' + ${employee.id} + '/reset-progress'}" method="post" style="margin:0">
+            <input type="hidden" name="lang"  th:value="${lang}"/>
+            <input type="hidden" name="theme" th:value="${theme}"/>
+            <button type="submit" class="btn btn-danger btn-sm"
+                    onclick="return confirm(this.getAttribute('data-confirm'))"
+                    th:attr="data-confirm=${lang == 'ar'} ? 'إعادة تعيين جميع التقدم؟' : 'Reset all progress?'"
+                    th:text="${lang == 'ar'} ? '🔄 إعادة تعيين' : '🔄 Reset Progress'"></button>
+        </form>
+
+        <!-- Update Deadline -->
+        <form th:action="@{'/employees/' + ${employee.id} + '/update-deadline'}" method="post" style="margin:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="hidden" name="lang"  th:value="${lang}"/>
+            <input type="hidden" name="theme" th:value="${theme}"/>
+            <input type="date" name="deadline" class="form-control" style="height:32px;width:auto"
+                   th:value="${employee.trainingDeadline}"
+                   required/>
+            <button type="submit" class="btn btn-primary btn-sm"
+                    th:text="${lang == 'ar'} ? '📅 تحديث الموعد' : '📅 Update Deadline'"></button>
+        </form>
+    </div>
+
+</div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

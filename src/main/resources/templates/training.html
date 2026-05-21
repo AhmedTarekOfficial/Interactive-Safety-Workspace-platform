@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Smart Safety Training Game — Safety Hub</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Tajawal:wght@300;400;700;900&family=Exo+2:wght@300;400;600;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <style>
+    /* ─── BALANCED SHINE THEME ─── */
+    :root {
+      --bg: #eef2f6;
+      --surface: rgba(255, 255, 255, 0.9);
+      --border: rgba(139, 92, 246, 0.3);
+      --text: #0f172a;
+      --text2: #334155;
+      --accent: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.4);
+
+      /* ألوان خاصة بمسارات التدريب */
+      --training-blue: #3b82f6;
+      --training-purple: #8b5cf6;
+      --training-green: #10b981;
+
+      --nav-bg: rgba(238, 242, 246, 0.95);
+      --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --hover-shadow: 0 20px 40px rgba(139, 92, 246, 0.15), 0 0 15px rgba(139, 92, 246, 0.2);
+      --overlay: rgba(238, 242, 246, 0.4);
+      --engraved-bg: rgba(0, 0, 0, 0.03);
+      --engraved-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.15), 0 2px 0 rgba(255, 255, 255, 1);
+    }
+
+    [data-theme="dark"] {
+      --bg: #02060d;
+      --surface: rgba(8, 18, 40, 0.75);
+      --border: rgba(139, 92, 246, 0.4);
+      --text: #f1f5f9;
+      --text2: #94a3b8;
+      --accent: #a78bfa;
+      --accent-glow: rgba(139, 92, 246, 0.6);
+
+      --training-blue: #60a5fa;
+      --training-purple: #a78bfa;
+      --training-green: #34d399;
+
+      --nav-bg: rgba(2, 6, 13, 0.95);
+      --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      --hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 25px var(--accent-glow);
+      --overlay: rgba(2, 6, 13, 0.7);
+      --engraved-bg: rgba(0, 0, 0, 0.5);
+      --engraved-shadow: inset 0 6px 15px rgba(0, 0, 0, 0.9), 0 1px 1px rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Exo 2', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+
+    [data-lang="ar"] body,
+    [data-lang="ar"] *:not(i) {
+      font-family: 'Tajawal', sans-serif !important;
+    }
+
+    [data-lang="ar"] body {
+      direction: rtl;
+    }
+
+    [data-lang="ar"] .en {
+      display: none;
+    }
+
+    [data-lang="en"] .ar {
+      display: none;
+    }
+
+    /* ─── VIDEO BACKGROUND SYSTEM ─── */
+    #video-bg-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    #video-bg-container video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.6s ease-in-out;
+    }
+
+    #light-video {
+      opacity: 1;
+    }
+
+    #dark-video {
+      opacity: 0;
+    }
+
+    [data-theme="dark"] #light-video {
+      opacity: 0;
+    }
+
+    [data-theme="dark"] #dark-video {
+      opacity: 1;
+    }
+
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--overlay);
+      transition: background 0.6s ease;
+    }
+
+    /* ─── NAVIGATION ─── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: var(--nav-bg);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.5s, border-color 0.5s;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent), #00d2ff);
+      color: #fff;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px var(--accent-glow), inset 0 2px 5px rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+    }
+
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transform: rotate(45deg);
+      animation: logoShine 3s infinite;
+    }
+
+    @keyframes logoShine {
+      0% {
+        transform: translateX(-100%) rotate(45deg);
+      }
+
+      100% {
+        transform: translateX(100%) rotate(45deg);
+      }
+    }
+
+    .logo-text {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, var(--text), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px var(--accent-glow);
+    }
+
+    [data-theme="dark"] .logo-text {
+      background: linear-gradient(90deg, #ffffff, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    [data-lang="ar"] .logo-text {
+      font-family: 'Tajawal', sans-serif !important;
+      letter-spacing: 0;
+      font-size: 1.3rem;
+    }
+
+    /* ─── ORIGINAL NAV LINKS ─── */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 25px;
+    }
+
+    .nav-links a {
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text2);
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    [data-lang="ar"] .nav-links a {
+      font-family: 'Tajawal', sans-serif !important;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--accent);
+      text-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .hud-clock { 
+      font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700; color: var(--accent); 
+      letter-spacing: 1.5px; padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; 
+      background: rgba(139, 92, 246, 0.08); backdrop-filter: blur(12px); 
+      box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.2); text-shadow: 0 0 8px var(--accent-glow); 
+      min-width: 120px; text-align: center; display: flex; align-items: center; justify-content: center; 
+    }
+    [data-lang="ar"] .hud-clock { font-family: 'Orbitron', monospace !important; }
+
+    .tc-back, .lang-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Orbitron', monospace; font-weight: 700; font-size: 13px; color: var(--text); 
+      padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); 
+      cursor: pointer; transition: 0.3s; text-decoration: none;
+    }
+    .tc-back:hover, .lang-btn:hover {
+      background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow);
+    }
+    .tc-back i, .lang-btn i { font-size: 16px; }
+
+    .theme-switch {
+      position: relative; width: 50px; height: 26px; background: var(--surface); 
+      border: 1px solid var(--border); border-radius: 30px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(10px);
+    }
+    .theme-switch::after {
+      content: ''; position: absolute; left: 3px; top: 2px; width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent); transition: transform 0.4s; box-shadow: 0 0 10px var(--accent-glow);
+    }
+    [data-theme="dark"] .theme-switch::after { transform: translateX(24px); background: #fff; }
+
+    /* ─── 3D SPACE CONTAINER ─── */
+    #universe-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      perspective: 1200px;
+      z-index: 10;
+      pointer-events: none !important;
+    }
+
+    #universe {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      pointer-events: none !important;
+    }
+
+    /* ─── FLOATING CARDS ─── */
+    .space-node {
+      position: absolute;
+      width: 300px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px 20px;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+      transform-style: preserve-3d;
+      cursor: pointer;
+      pointer-events: auto !important;
+      transition: border-color 0.4s, box-shadow 0.4s, background 0.4s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .space-node::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      pointer-events: none;
+    }
+
+    /* ─── FULL CARD RADAR SCANNER ─── */
+    .space-node::after {
+      content: '';
+      position: absolute;
+      left: 5%;
+      width: 90%;
+      top: 5%;
+      height: 2px;
+      background: var(--accent);
+      box-shadow: 0 0 15px 3px var(--accent-glow);
+      animation: fullCardScan 2.5s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.8;
+    }
+
+    @keyframes fullCardScan {
+      0% {
+        top: 5%;
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        top: 93%;
+        opacity: 0;
+      }
+    }
+
+    /* ─── ENGRAVED ICONS ─── */
+    .node-icon {
+      position: relative;
+      width: 75px;
+      height: 75px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      background: var(--engraved-bg);
+      box-shadow: var(--engraved-shadow);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transform: translateZ(35px);
+      z-index: 2;
+    }
+
+    .node-icon i {
+      color: var(--accent);
+      text-shadow: 0 0 15px var(--accent-glow), 0 0 5px var(--accent);
+      transition: transform 0.3s ease;
+    }
+
+    .space-node:hover .node-icon i {
+      transform: scale(1.15);
+    }
+
+    /* ─── TRAINING SPECIFIC STYLES ─── */
+
+    /* Hero Text */
+    .training-hero {
+      position: absolute;
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .training-hero h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: 3rem;
+      color: var(--text);
+      font-weight: 900;
+      text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      margin-bottom: 10px;
+    }
+
+    .training-hero h1 span {
+      color: var(--accent);
+      text-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    [data-lang="ar"] .training-hero h1 {
+      font-family: 'Tajawal', sans-serif !important;
+    }
+
+    .training-hero p {
+      font-size: 1.1rem;
+      color: var(--text2);
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    [data-theme="dark"] .training-hero h1 {
+      color: #fff;
+    }
+
+    [data-theme="dark"] .training-hero p {
+      color: #e6f0ff;
+    }
+
+    /* Tags */
+    .level-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      transform: translateZ(20px);
+      border: 1px solid;
+    }
+
+    /* Card Colors Overrides */
+    .card-blue .level-tag {
+      color: var(--training-blue);
+      border-color: var(--training-blue);
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .card-blue h3,
+    .card-blue .node-icon i {
+      color: var(--training-blue);
+      text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    }
+
+    .card-blue::after {
+      background: var(--training-blue);
+      box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.4);
+    }
+
+    .card-purple {
+      animation: pulseGamer 3s infinite alternate;
+    }
+
+    @keyframes pulseGamer {
+      0% {
+        box-shadow: var(--card-shadow);
+      }
+
+      100% {
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+      }
+    }
+
+    .card-purple .level-tag {
+      color: var(--training-purple);
+      border-color: var(--training-purple);
+      background: rgba(139, 92, 246, 0.1);
+    }
+
+    .card-purple h3,
+    .card-purple .node-icon i {
+      color: var(--training-purple);
+      text-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+    }
+
+    .card-purple::after {
+      background: var(--training-purple);
+      box-shadow: 0 0 15px 3px rgba(139, 92, 246, 0.4);
+    }
+
+    .card-green .level-tag {
+      color: var(--training-green);
+      border-color: var(--training-green);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .card-green h3,
+    .card-green .node-icon i {
+      color: var(--training-green);
+      text-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    }
+
+    .card-green::after {
+      background: var(--training-green);
+      box-shadow: 0 0 15px 3px rgba(16, 185, 129, 0.4);
+    }
+
+    .space-node h3 {
+      position: relative;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.3rem;
+      margin-bottom: 5px;
+      transform: translateZ(25px);
+      font-weight: 900;
+      z-index: 2;
+      text-align: center;
+    }
+
+    [data-lang="ar"] .space-node h3 {
+      font-family: 'Tajawal', sans-serif !important;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text2);
+      margin-bottom: 15px;
+      transform: translateZ(20px);
+    }
+
+    .space-node p {
+      position: relative;
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.6;
+      transform: translateZ(15px);
+      z-index: 2;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .btn-start {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-family: 'Exo 2', sans-serif;
+      cursor: pointer;
+      transition: 0.3s;
+      border: none;
+      transform: translateZ(30px);
+      background: var(--text);
+      color: var(--bg);
+      text-decoration: none;
+    }
+
+    [data-theme="dark"] .btn-start {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    [data-lang="ar"] .btn-start {
+      font-family: 'Tajawal', sans-serif !important;
+    }
+
+    .btn-start:hover {
+      transform: translateZ(30px) translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="dark"] .btn-start:hover {
+      box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+    }
+
+    @media (max-width: 1000px) {
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="video-bg-container">
+    <video id="light-video"
+      src="/videos/light-bg.mp4" autoplay
+      loop muted playsinline></video>
+    <video id="dark-video" src="/videos/dark-bg.mp4" autoplay
+      loop muted playsinline></video>
+    <div class="video-overlay"></div>
+  </div>
+
+  <nav>
+    <div class="nav-logo">
+      <div class="logo-icon" style="overflow:hidden; border-radius:50%; border:2px solid #a78bfa; box-shadow:0 0 10px rgba(167,139,250,0.5); width:40px; height:40px;">
+          <img th:src="${userProfilePic != null ? userProfilePic : (userGender == 'Female' ? 'https://avatar.iran.liara.run/public/girl' : 'https://avatar.iran.liara.run/public/boy')}" 
+               th:attr="onerror=|this.src='https://ui-avatars.com/api/?name=${username}&background=a78bfa&color=fff'|"
+               style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <span class="logo-text en">SAFETY HUB</span>
+      <span class="logo-text ar">مركز السلامة</span>
+    </div>
+
+
+
+    <div class="nav-controls">
+      <div class="hud-clock" id="live-time">--:--:--</div>
+      <div class="theme-switch" id="themeToggle" title="Toggle Theme"></div>
+      <button class="lang-btn" id="langToggle">
+        <span class="en">عربي</span>
+        <span class="ar">EN</span>
+      </button>
+      <a th:href="@{/index(lang=${lang},theme=${theme})}" class="tc-back">
+        <i class="fa-solid fa-house"></i>
+        <span class="en">Back Home</span><span class="ar">الرئيسية</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="training-hero">
+    <h1>
+      <span class="en">Interactive <span>Training</span></span>
+      <span class="ar">التدريب <span>التفاعلي</span></span>
+    </h1>
+    <p>
+      <span class="en">Choose your learning path and start your safety journey.</span>
+      <span class="ar">اختر مسار التعلم الخاص بك وابدأ رحلة السلامة.</span>
+    </p>
+  </div>
+
+  <div id="universe-container">
+    <div id="universe">
+
+      <div class="space-node card-blue" id="node-course">
+        <div class="level-tag"><span class="en">Beginner to Intermediate</span><span class="ar">مبتدئ إلى متوسط</span>
+        </div>
+        <div class="node-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <h3><span class="en">Safety Courses</span><span class="ar">دورات السلامة</span></h3>
+        <div class="subtitle"><span class="en">Interactive Learning Modules</span><span class="ar">وحدات تعليمية
+            تفاعلية</span></div>
+        <p>
+          <span class="en">Access foundational safety lessons including PPE, fire response, and first aid. Learn at your
+            own pace through videos and mini-quizzes.</span>
+          <span class="ar">احصل على دروس السلامة الأساسية، وتعلم بالوتيرة التي تناسبك من خلال الفيديوهات والاختبارات
+            القصيرة.</span>
+        </p>
+        <a href="/training/courses" class="btn-start">
+          <span class="en">Start Journey</span><span class="ar">ابدأ الرحلة</span> <i
+            class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="space-node card-purple" id="node-game">
+        <div class="level-tag"><span class="en">All Levels</span><span class="ar">جميع المستويات</span></div>
+        <div class="node-icon"><i class="fa-solid fa-vr-cardboard"></i></div>
+        <h3><span class="en">Gaming Mode</span><span class="ar">وضع اللعب</span></h3>
+        <div class="subtitle"><span class="en">Play & Learn Missions</span><span class="ar">مهمات للعب والتعلم</span>
+        </div>
+        <p>
+          <span class="en">Join interactive safety missions inside the virtual factory. Complete levels, earn badges,
+            and unlock new challenges.</span>
+          <span class="ar">انضم لمهمات السلامة داخل المصنع الافتراضي. أكمل المستويات، واكسب الشارات لفتح تحديات
+            جديدة.</span>
+        </p>
+        <a href="/games" class="btn-start">
+          <span class="en">Start Journey</span><span class="ar">ابدأ الرحلة</span> <i
+            class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="space-node card-green" id="node-scenario">
+        <div class="level-tag"><span class="en">Intermediate to Advanced</span><span class="ar">متوسط إلى متقدم</span>
+        </div>
+        <div class="node-icon"><i class="fa-solid fa-industry"></i></div>
+        <h3><span class="en">Real-Life Scenarios</span><span class="ar">سيناريوهات واقعية</span></h3>
+        <div class="subtitle"><span class="en">Practical Safety Simulations</span><span class="ar">محاكاة عملية
+            للسلامة</span></div>
+        <p>
+          <span class="en">Experience realistic industrial safety cases. Apply what you’ve learned to solve real-world
+            hazards and emergencies.</span>
+          <span class="ar">عش تجربة حالات صناعية واقعية. طبق ما تعلمته لحل مخاطر وحالات طوارئ العالم الحقيقي.</span>
+        </p>
+        <a href="/scenarios" class="btn-start">
+          <span class="en">Start Journey</span><span class="ar">ابدأ الرحلة</span> <i
+            class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/js/notifications.js"></script>
+
+  <script>
+    // ─── CLOCK (EGYPTIAN TIME - 12 HOUR FORMAT) ───
+    function updateClock() {
+      const el = document.getElementById('live-time');
+      if (el) {
+        el.textContent = new Date().toLocaleTimeString('en-US', {
+          timeZone: 'Africa/Cairo', hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+      }
+    }
+    updateClock(); setInterval(updateClock, 1000);
+
+    // ─── THEME & LANGUAGE SWITCHER ───
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const langToggle = document.getElementById('langToggle');
+
+    themeToggle.addEventListener('click', () => {
+      html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    langToggle.addEventListener('click', () => {
+      html.setAttribute('data-lang', html.getAttribute('data-lang') === 'en' ? 'ar' : 'en');
+    });
+
+    // ─── GSAP 3D LAYOUT WITH SMART CENTER PULL ───
+    const nodes = gsap.utils.toArray('.space-node');
+    const universe = document.getElementById('universe');
+
+    // توزيع 3 كروت بشكل متناسق في نص الشاشة (تحت العنوان)
+    const layoutPositions = {
+      'node-course': { left: 20, top: 60, z: -100 },
+      'node-game': { left: 50, top: 60, z: 0 }, // البطل في النص أقرب للمستخدم
+      'node-scenario': { left: 80, top: 60, z: -100 }
+    };
+
+    nodes.forEach((node) => {
+      const pos = layoutPositions[node.id];
+      if (!pos) return;
+      node.dataset.origZ = pos.z;
+
+      gsap.set(node, {
+        left: pos.left + "%", top: pos.top + "%",
+        xPercent: -50, yPercent: -50,
+        z: pos.z,
+        rotationX: gsap.utils.random(-6, 6), rotationY: gsap.utils.random(-6, 6)
+      });
+
+      node.drift = gsap.to(node, {
+        x: gsap.utils.random(-20, 20), y: gsap.utils.random(-20, 20),
+        rotationX: "+=4", rotationY: "-=4",
+        duration: gsap.utils.random(6, 9),
+        yoyo: true, repeat: -1, ease: "sine.inOut"
+      });
+
+      node.addEventListener('mouseenter', () => {
+        node.drift.pause();
+        nodes.forEach(other => {
+          if (other !== node) gsap.to(other, { opacity: 0.35, scale: 0.9, duration: 0.4, ease: "power2.out" });
+        });
+
+        const targetLeft = pos.left + (50 - pos.left) * 0.45;
+        const targetTop = pos.top + (50 - pos.top) * 0.45;
+
+        // استخراج لون الكارت عشان الضل ينور بنفس اللون
+        let hoverShadow = "var(--hover-shadow)";
+        let borderColor = "var(--accent)";
+        if (node.classList.contains('card-blue')) { hoverShadow = "0 20px 40px rgba(59, 130, 246, 0.3)"; borderColor = "var(--training-blue)"; }
+        if (node.classList.contains('card-purple')) { hoverShadow = "0 20px 40px rgba(139, 92, 246, 0.3)"; borderColor = "var(--training-purple)"; }
+        if (node.classList.contains('card-green')) { hoverShadow = "0 20px 40px rgba(16, 185, 129, 0.3)"; borderColor = "var(--training-green)"; }
+
+        gsap.to(node, {
+          left: targetLeft + "%", top: targetTop + "%", z: 220,
+          rotationX: 0, rotationY: 0, scale: 1.1,
+          boxShadow: hoverShadow,
+          borderColor: borderColor,
+          zIndex: 100, duration: 0.5, ease: "back.out(1.5)"
+        });
+      });
+
+      node.addEventListener('mouseleave', () => {
+        nodes.forEach(other => {
+          if (other !== node) gsap.to(other, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.inOut" });
+        });
+
+        gsap.to(node, {
+          left: pos.left + "%", top: pos.top + "%", z: parseFloat(node.dataset.origZ), scale: 1,
+          boxShadow: "var(--card-shadow)",
+          borderColor: "var(--border)",
+          zIndex: 10, duration: 0.5, ease: "power2.inOut", onComplete: () => node.drift.play()
+        });
+      });
+    });
+
+    // ─── PARALLAX EFFECT ───
+    window.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 2;
+      const y = (e.clientY / window.innerHeight - 0.5) * 2;
+      gsap.to(universe, {
+        rotationY: x * 6, rotationX: -y * 6,
+        x: -x * 20, y: -y * 20,
+        duration: 2, ease: "power3.out"
+      });
+    });
+  </script>
+</body>
+
+</html>

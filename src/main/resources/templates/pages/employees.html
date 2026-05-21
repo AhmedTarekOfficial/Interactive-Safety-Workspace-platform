@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:attr="data-theme=${theme}, dir=${lang == 'ar' ? 'rtl' : 'ltr'}">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${lang=='ar'} ? 'الموظفون — سيف جارد' : 'Employees — SafeGuard'">Employees</title>
+    <link rel="icon" href="data:,"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+    <style>
+        /* ── Page header ── */
+        .emp-page-hdr {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+        }
+        .emp-page-title {
+            font-family: var(--fh); font-size: 22px; font-weight: 800;
+            color: var(--txt);
+        }
+        .emp-page-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+        /* ── Search / filter bar ── */
+        .emp-filter {
+            display: flex; align-items: center; gap: 10px;
+            flex-wrap: wrap; margin-bottom: 20px;
+        }
+        .emp-search-wrap {
+            position: relative; flex: 1; min-width: 200px; max-width: 340px;
+        }
+        .emp-search-ico {
+            position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+            font-size: 14px; pointer-events: none;
+        }
+        [dir="rtl"] .emp-search-ico { left: auto; right: 13px; }
+        .emp-search-inp {
+            width: 100%; height: 38px;
+            padding: 0 14px 0 36px;
+            background: var(--surf); border: 1px solid var(--bdr);
+            border-radius: var(--r1); font-size: 13px; color: var(--txt);
+            outline: none; transition: border-color .2s;
+        }
+        [dir="rtl"] .emp-search-inp { padding: 0 36px 0 14px; }
+        .emp-search-inp:focus { border-color: var(--blue); }
+        .emp-search-inp::placeholder { color: var(--muted); }
+        .emp-sel {
+            height: 38px; padding: 0 32px 0 12px;
+            background: var(--surf); border: 1px solid var(--bdr);
+            border-radius: var(--r1); font-size: 13px; color: var(--txt);
+            outline: none; cursor: pointer; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 10px center;
+            min-width: 130px;
+        }
+        [dir="rtl"] .emp-sel { padding: 0 12px 0 32px; background-position: left 10px center; }
+        .emp-sel:focus { border-color: var(--blue); }
+
+        /* ── Stats strip ── */
+        .emp-stats {
+            display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .emp-stat-pill {
+            display: flex; align-items: center; gap: 7px;
+            background: var(--surf); border: 1px solid var(--bdr);
+            border-radius: 99px; padding: 6px 14px;
+            font-size: 12px; font-weight: 600; color: var(--txt2);
+        }
+        .esp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .esp-blue  { background: var(--blue); }
+        .esp-green { background: var(--green); }
+        .esp-red   { background: var(--red); }
+        .esp-gold  { background: var(--orange); }
+
+        /* ── Card grid ── */
+        .emp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        /* ── Employee card ── */
+        .emp-card {
+            background: var(--surf);
+            border: 1px solid var(--bdr);
+            border-radius: var(--r2);
+            padding: 20px;
+            box-shadow: var(--sh-sm);
+            transition: transform .15s ease, box-shadow .15s ease;
+            display: flex; flex-direction: column; gap: 14px;
+        }
+        .emp-card:hover { transform: translateY(-3px); box-shadow: var(--sh-md); }
+
+        /* top row: avatar + name + badge */
+        .ec-top { display: flex; align-items: flex-start; gap: 12px; }
+        .ec-avatar {
+            width: 46px; height: 46px; border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 800; font-family: var(--fh);
+            color: #fff; flex-shrink: 0;
+        }
+        .ec-av-green  { background: linear-gradient(135deg,#10b981,#059669); }
+        .ec-av-blue   { background: linear-gradient(135deg,#3b82f6,#1d4ed8); }
+        .ec-av-orange { background: linear-gradient(135deg,#f59e0b,#b45309); }
+        .ec-av-red    { background: linear-gradient(135deg,#ef4444,#991b1b); }
+
+        .ec-info { flex: 1; min-width: 0; }
+        .ec-name {
+            font-family: var(--fh); font-size: 15px; font-weight: 700;
+            color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .ec-dept { font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .ec-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 10px; border-radius: 99px;
+            font-size: 11px; font-weight: 600; flex-shrink: 0;
+        }
+        .ecb-active { background: #dcfce7; color: #166534; }
+        .ecb-proc   { background: #fee2e2; color: #991b1b; }
+        .ecb-done   { background: #ede9fe; color: #5b21b6; }
+        [data-theme="dark"] .ecb-active { background: #14532d; color: #86efac; }
+        [data-theme="dark"] .ecb-proc   { background: #450a0a; color: #fca5a5; }
+        [data-theme="dark"] .ecb-done   { background: #2e1065; color: #c4b5fd; }
+
+        /* progress rows */
+        .ec-progs { display: flex; flex-direction: column; gap: 9px; }
+        .ec-prog-row { display: flex; flex-direction: column; gap: 4px; }
+        .ec-prog-lbl {
+            display: flex; justify-content: space-between;
+            font-size: 11px; color: var(--muted); font-weight: 600;
+        }
+        .ec-prog-lbl span:last-child { color: var(--txt2); font-weight: 700; }
+        .ec-prog-bg { height: 6px; background: var(--surf2); border-radius: 99px; overflow: hidden; }
+        .ec-prog-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
+
+        /* score + meta row */
+        .ec-meta {
+            display: flex; align-items: center; justify-content: space-between;
+            padding-top: 10px; border-top: 1px solid var(--bdr);
+            flex-wrap: wrap; gap: 8px;
+        }
+        .ec-score {
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .ec-score-val {
+            font-family: var(--fh); font-size: 20px; font-weight: 800;
+        }
+        .ec-score-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+        .ec-info-chips { display: flex; flex-direction: column; gap: 4px; }
+        .ec-chip {
+            font-size: 11px; color: var(--txt2);
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        /* action buttons */
+        .ec-actions { display: flex; gap: 7px; }
+        .ec-btn {
+            flex: 1; height: 34px;
+            border: 1px solid var(--bdr); border-radius: var(--r1);
+            background: var(--surf2); color: var(--txt2);
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            transition: all .15s ease; font-family: inherit;
+        }
+        .ec-btn:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .ec-btn.danger:hover { background: var(--red); border-color: var(--red); color: #fff; }
+
+        /* empty state */
+        .emp-empty {
+            grid-column: 1 / -1;
+            text-align: center; padding: 60px 20px;
+            background: var(--surf); border: 1px solid var(--bdr);
+            border-radius: var(--r2);
+        }
+        .emp-empty-ico { font-size: 48px; margin-bottom: 14px; }
+        .emp-empty-txt { font-size: 15px; color: var(--muted); }
+    </style>
+</head>
+<body>
+<canvas id="safety-canvas"></canvas>
+<div id="toast-wrap" class="toast-wrap"></div>
+<div id="srv-toast" th:if="${toast != null}" th:attr="data-msg=${toast}" style="display:none"></div>
+
+<div class="shell">
+  <th:block th:replace="~{fragments/sidebar :: sidebar}"/>
+
+  <div class="main">
+    <th:block th:replace="~{fragments/topbar :: topbar}"/>
+
+    <div class="page-body">
+
+      <!-- Page header -->
+      <div class="emp-page-hdr">
+        <div>
+          <div class="emp-page-title" th:text="${lang=='ar'} ? 'الموظفون' : 'Employees'"></div>
+          <div class="emp-page-sub"
+               th:text="${lang=='ar'} ? 'إدارة ومتابعة أداء فريق العمل' : 'Manage and track your team performance'"></div>
+        </div>
+      </div>
+
+      <!-- Stats strip -->
+      <div class="emp-stats">
+        <div class="emp-stat-pill">
+          <div class="esp-dot esp-blue"></div>
+          <span th:text="${employees.size()} + ' ' + (${lang=='ar'} ? 'موظف' : 'employees')"></span>
+        </div>
+        <div class="emp-stat-pill">
+          <div class="esp-dot esp-green"></div>
+          <span th:text="${activeCount} + ' ' + (${lang=='ar'} ? 'نشط' : 'active')"></span>
+        </div>
+        <div class="emp-stat-pill">
+          <div class="esp-dot esp-red"></div>
+          <span th:text="${procrastCount} + ' ' + (${lang=='ar'} ? 'متأخر' : 'procrastinating')"></span>
+        </div>
+        <div class="emp-stat-pill">
+          <div class="esp-dot esp-gold"></div>
+          <span th:text="${completedCount} + ' ' + (${lang=='ar'} ? 'مكتمل' : 'completed')"></span>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <form id="filter-form" method="get" th:action="@{/employees}" class="emp-filter">
+        <input type="hidden" name="lang"  th:value="${lang}"/>
+        <input type="hidden" name="theme" th:value="${theme}"/>
+        <div class="emp-search-wrap">
+          <span class="emp-search-ico">🔍</span>
+          <input type="text" id="search-input" name="query" class="emp-search-inp"
+                 th:value="${query}"
+                 th:placeholder="${lang=='ar'} ? 'بحث عن موظف...' : 'Search employees...'"
+                 autocomplete="off"/>
+        </div>
+        <select name="department" class="emp-sel" onchange="this.form.submit()">
+          <option value="ALL"           th:selected="${department=='ALL'}"           th:text="${lang=='ar'}?'جميع الأقسام':'All Departments'"></option>
+          <option value="MANUFACTURING" th:selected="${department=='MANUFACTURING'}" th:text="${lang=='ar'}?'التصنيع':'Manufacturing'"></option>
+          <option value="LOGISTICS"     th:selected="${department=='LOGISTICS'}"     th:text="${lang=='ar'}?'اللوجستيات':'Logistics'"></option>
+          <option value="MAINTENANCE"   th:selected="${department=='MAINTENANCE'}"   th:text="${lang=='ar'}?'الصيانة':'Maintenance'"></option>
+          <option value="HR"            th:selected="${department=='HR'}"            th:text="${lang=='ar'}?'الموارد البشرية':'HR'"></option>
+          <option value="OPERATIONS"    th:selected="${department=='OPERATIONS'}"    th:text="${lang=='ar'}?'العمليات':'Operations'"></option>
+        </select>
+        <select name="status" class="emp-sel" onchange="this.form.submit()">
+          <option value="ALL"            th:selected="${status=='ALL'}"            th:text="${lang=='ar'}?'كل الحالات':'All Status'"></option>
+          <option value="ACTIVE"         th:selected="${status=='ACTIVE'}"         th:text="${lang=='ar'}?'نشط':'Active'"></option>
+          <option value="PROCRASTINATOR" th:selected="${status=='PROCRASTINATOR'}" th:text="${lang=='ar'}?'متأخر':'Procrastinating'"></option>
+          <option value="COMPLETED"      th:selected="${status=='COMPLETED'}"      th:text="${lang=='ar'}?'مكتمل':'Completed'"></option>
+        </select>
+      </form>
+
+      <!-- Card grid -->
+      <div class="emp-grid">
+
+        <!-- Empty state -->
+        <div th:if="${employees.isEmpty()}" class="emp-empty">
+          <div class="emp-empty-ico">🔍</div>
+          <div class="emp-empty-txt" th:text="${lang=='ar'} ? 'لا يوجد موظفون مطابقون' : 'No employees found'"></div>
+        </div>
+
+        <!-- Employee card -->
+        <div th:each="emp : ${employees}" class="emp-card">
+
+          <!-- Top: avatar + name + status -->
+          <div class="ec-top">
+            <div th:class="'ec-avatar ' + (${emp.safetyScore>=80}?'ec-av-green':(${emp.safetyScore>=50}?'ec-av-blue':(${emp.safetyScore>=20}?'ec-av-orange':'ec-av-red')))"
+                 th:text="${emp.avatarInitials}"></div>
+            <div class="ec-info">
+              <div class="ec-name" th:text="${lang=='ar'} ? ${emp.nameAr} : ${emp.name}"></div>
+              <div class="ec-dept" th:text="${lang=='ar'} ? ${emp.departmentAr} : ${emp.department}"></div>
+            </div>
+            <span th:class="'ec-badge ' + (${emp.status.name()=='ACTIVE'}?'ecb-active':(${emp.status.name()=='PROCRASTINATOR'}?'ecb-proc':'ecb-done'))">
+              <span th:text="${emp.status.name()=='ACTIVE'}?(${lang=='ar'}?'🟢 نشط':'🟢 Active'):(${emp.status.name()=='PROCRASTINATOR'}?(${lang=='ar'}?'🔴 متأخر':'🔴 Late'):(${lang=='ar'}?'🏆 مكتمل':'🏆 Done'))"></span>
+            </span>
+          </div>
+
+          <!-- Progress bars -->
+          <div class="ec-progs">
+            <!-- Courses -->
+            <div class="ec-prog-row">
+              <div class="ec-prog-lbl">
+                <span th:text="${lang=='ar'} ? '📚 الكورسات' : '📚 Courses'"></span>
+                <span th:text="${emp.completedCourses} + '/' + ${emp.totalCourses} + ' · ' + ${emp.avgCourseProgress} + '%'"></span>
+              </div>
+              <div class="ec-prog-bg">
+                <div class="ec-prog-fill"
+                     th:style="'width:'+${emp.avgCourseProgress}+'%;background:'+(${emp.avgCourseProgress>=70}?'#10b981':(${emp.avgCourseProgress>=40}?'#f59e0b':'#ef4444'))"></div>
+              </div>
+            </div>
+            <!-- Game -->
+            <div class="ec-prog-row">
+              <div class="ec-prog-lbl">
+                <span th:text="${lang=='ar'} ? '🎮 اللعبة' : '🎮 Game'"></span>
+                <span th:text="${emp.gameProgress} + '%'"></span>
+              </div>
+              <div class="ec-prog-bg">
+                <div class="ec-prog-fill"
+                     th:style="'width:'+${emp.gameProgress}+'%;background:'+(${emp.gameProgress>=70}?'#8b5cf6':(${emp.gameProgress>=40}?'#3b82f6':'#94a3b8'))"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Score + meta -->
+          <div class="ec-meta">
+            <div class="ec-score">
+              <div class="ec-score-val"
+                   th:style="'color:'+(${emp.safetyScore>=80}?'#10b981':(${emp.safetyScore>=50}?'#f59e0b':'#ef4444'))"
+                   th:text="${emp.safetyScore}+'%'"></div>
+              <div class="ec-score-lbl" th:text="${lang=='ar'} ? 'نقاط السلامة' : 'Safety Score'"></div>
+            </div>
+            <div class="ec-info-chips">
+              <div class="ec-chip">
+                <span>🕐</span>
+                <span th:text="${emp.daysSinceActive==0}?(${lang=='ar'}?'نشط اليوم':'Active today'):(${emp.daysSinceActive==1}?(${lang=='ar'}?'أمس':'Yesterday'):(${emp.daysSinceActive}+' '+(${lang=='ar'}?'أيام':'d ago')))"></span>
+              </div>
+              <div class="ec-chip">
+                <span>💼</span>
+                <span th:text="${emp.jobTitle}"></span>
+              </div>
+              <div class="ec-chip" th:if="${emp.trainingDeadline != null}">
+                <span>📅</span>
+                <span th:style="${emp.overdue}?'color:#ef4444':''" th:text="${emp.trainingDeadline}"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="ec-actions">
+            <button class="ec-btn" th:data-id="${emp.id}" onclick="openDetailModal(this.dataset.id)">
+              👁 <span th:text="${lang=='ar'}?'عرض':'View'"></span>
+            </button>
+            <button class="ec-btn" th:data-id="${emp.id}" th:data-deadline="${emp.trainingDeadline}"
+                    onclick="openDeadlineModal(this.dataset.id, this.dataset.deadline)">
+              📅 <span th:text="${lang=='ar'}?'موعد':'Deadline'"></span>
+            </button>
+            <button class="ec-btn danger" th:data-id="${emp.id}"
+                    th:attr="data-name=${emp.nameAr} ?: ${emp.name}"
+                    onclick="openResetModal(this.dataset.id, this.dataset.name)">
+              🔄
+            </button>
+          </div>
+
+        </div><!-- /emp-card -->
+      </div><!-- /emp-grid -->
+
+    </div>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/modals :: modals}"/>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

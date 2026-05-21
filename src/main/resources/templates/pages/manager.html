@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:attr="data-theme=${theme != null ? theme : 'light'}, dir=${lang == 'ar' ? 'rtl' : 'ltr'}">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${lang=='ar'}?'إدارة الموظفين — سيف جارد':'Manage Employees — SafeGuard'">Manager</title>
+    <link rel="icon" href="data:,"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+    <style>
+        .mgr-form-card {
+            background: var(--surf);
+            border: 1px solid var(--bdr);
+            border-radius: var(--r2);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--sh-sm);
+        }
+        .mgr-form-card h3 {
+            font-size: 16px; font-family: var(--fh); color: var(--txt);
+            margin-bottom: 18px;
+        }
+        .mgr-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 14px;
+        }
+        .mgr-form-group label {
+            display: block;
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .5px; color: var(--muted);
+            margin-bottom: 5px;
+        }
+        .mgr-form-group .input {
+            width: 100%;
+            background: var(--surf2);
+            border: 1px solid var(--bdr);
+            border-radius: var(--r1);
+            padding: 8px 12px;
+            font-size: 13px;
+            color: var(--txt);
+            outline: none;
+            transition: border-color .2s;
+        }
+        .mgr-form-group .input:focus { border-color: var(--blue); }
+        .mgr-alert-success {
+            background: var(--sdb); color: var(--sdt);
+            border: 1px solid var(--green);
+            border-radius: var(--r1); padding: 12px 16px; margin-bottom: 16px;
+            font-size: 13px;
+        }
+        .mgr-alert-error {
+            background: var(--spb); color: var(--spt);
+            border: 1px solid var(--red);
+            border-radius: var(--r1); padding: 12px 16px; margin-bottom: 16px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+<canvas id="safety-canvas"></canvas>
+<div id="toast-wrap" class="toast-wrap"></div>
+
+<div class="shell">
+  <th:block th:replace="~{fragments/manager-sidebar :: manager-sidebar}"/>
+
+  <div class="main">
+    <th:block th:replace="~{fragments/manager-topbar :: manager-topbar}"/>
+
+    <div class="page-body">
+
+      <!-- Alerts -->
+      <div th:if="${successMessage}" class="mgr-alert-success" th:text="${successMessage}"></div>
+      <div th:if="${errorMessage}"   class="mgr-alert-error"   th:text="${errorMessage}"></div>
+
+      <!-- Register New Employee -->
+      <div class="mgr-form-card">
+        <h3 th:text="${lang=='ar'}?'تسجيل موظف جديد':'Register New Employee'"></h3>
+        <form method="post" th:action="@{/manager/register}">
+          <input type="hidden" name="lang"  th:value="${lang}"/>
+          <input type="hidden" name="theme" th:value="${theme}"/>
+          <div class="mgr-form-grid">
+            <div class="mgr-form-group">
+              <label th:text="${lang=='ar'}?'اسم المستخدم':'Username'"></label>
+              <input type="text" name="username" required class="input"
+                     th:placeholder="${lang=='ar'}?'اسم المستخدم':'Username'"/>
+            </div>
+            <div class="mgr-form-group">
+              <label th:text="${lang=='ar'}?'رقم الهاتف':'Phone Number'"></label>
+              <input type="text" name="phoneNumber" class="input"
+                     th:placeholder="${lang=='ar'}?'رقم الهاتف':'Phone Number'"/>
+            </div>
+            <div class="mgr-form-group">
+              <label th:text="${lang=='ar'}?'البريد الإلكتروني':'Email'"></label>
+              <input type="email" name="email" required class="input"
+                     th:placeholder="${lang=='ar'}?'البريد الإلكتروني':'Email'"/>
+            </div>
+            <div class="mgr-form-group">
+              <label th:text="${lang=='ar'}?'كلمة المرور':'Password'"></label>
+              <input type="password" name="password" required class="input"
+                     th:placeholder="${lang=='ar'}?'كلمة المرور':'Password'"/>
+            </div>
+            <div class="mgr-form-group">
+              <label th:text="${lang=='ar'}?'القسم':'Department'"></label>
+              <select id="regDepId" class="input">
+                <option value="" selected disabled th:text="${lang=='ar'}?'اختر القسم':'Select department'"></option>
+                <option th:each="d : ${departments}" th:value="${d.dep_id}" th:text="${d.dep_title}"></option>
+              </select>
+            </div>
+            <div class="mgr-form-group">
+              <label th:text="${lang=='ar'}?'الوظيفة':'Job'"></label>
+              <select name="jobId" id="regJobId" class="input">
+                <option value="" selected disabled th:text="${lang=='ar'}?'اختر الوظيفة':'Select job'"></option>
+                <option th:each="job : ${jobs}" th:value="${job.job_id}" th:text="${job.job_title}"></option>
+              </select>
+            </div>
+            <div class="mgr-form-group">
+              <label th:text="${lang=='ar'}?'الدور':'Role'"></label>
+              <select name="ruleId" class="input">
+                <option value="" selected th:text="${lang=='ar'}?'عامل (افتراضي)':'Worker (default)'"></option>
+                <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.name}"></option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top:18px"
+                  th:text="${lang=='ar'}?'تسجيل الموظف':'Register Employee'"></button>
+        </form>
+      </div>
+
+      <!-- Employee List -->
+      <div class="dept-table-card table-card">
+        <div class="table-hdr">
+          <span class="table-hdr-title" th:text="${lang=='ar'}?'جميع الموظفين':'All Employees'"></span>
+          <span class="table-count" th:text="${users.size()} + ' ' + (${lang=='ar'}?'موظف':'employees')"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th th:text="${lang=='ar'}?'الرقم':'ID'"></th>
+              <th th:text="${lang=='ar'}?'اسم المستخدم':'Username'"></th>
+              <th th:text="${lang=='ar'}?'الهاتف':'Phone'"></th>
+              <th th:text="${lang=='ar'}?'القسم':'Department'"></th>
+              <th th:text="${lang=='ar'}?'الوظيفة':'Job'"></th>
+              <th th:text="${lang=='ar'}?'الدور':'Role'"></th>
+              <th th:text="${lang=='ar'}?'الإجراءات':'Actions'"></th>
+            </tr></thead>
+            <tbody>
+              <tr th:each="user : ${users}">
+                <td th:text="${user.userId}"></td>
+                <td style="font-weight:600" th:text="${user.username}"></td>
+                <td th:text="${user.phoneNumber}"></td>
+                <td th:text="${user.job != null && user.job.dep != null ? user.job.dep.dep_title : 'N/A'}"></td>
+                <td th:text="${user.job != null ? user.job.job_title : 'N/A'}"></td>
+                <td>
+                  <span class="badge b-active" th:text="${user.rule != null ? user.rule.name : 'Worker'}"></span>
+                </td>
+                <td>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <button class="btn-ico" th:onclick="|openEditModal(${user.userId})|">✏️</button>
+                    <form method="post" th:action="@{/manager/delete}" style="display:inline"
+                          th:onsubmit="|return confirm('${lang==\'ar\'?\'هل تريد حذف هذا الموظف؟\':\'Delete this employee?\'}')|">
+                      <input type="hidden" name="userId"  th:value="${user.userId}"/>
+                      <input type="hidden" name="lang"    th:value="${lang}"/>
+                      <input type="hidden" name="theme"   th:value="${theme}"/>
+                      <button type="submit" class="btn-ico danger">🗑</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal-backdrop hidden">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title" th:text="${lang=='ar'}?'تعديل الموظف':'Edit Employee'"></span>
+      <button class="btn-icon" onclick="document.getElementById('editModal').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form method="post" th:action="@{/manager/update}" id="editForm">
+        <input type="hidden" name="userId" id="editUserId"/>
+        <input type="hidden" name="lang"   th:value="${lang}"/>
+        <input type="hidden" name="theme"  th:value="${theme}"/>
+        <div style="display:grid;gap:14px">
+          <div class="mgr-form-group">
+            <label th:text="${lang=='ar'}?'اسم المستخدم':'Username'"></label>
+            <input type="text" name="username" id="editUsername" required class="input"/>
+          </div>
+          <div class="mgr-form-group">
+            <label th:text="${lang=='ar'}?'رقم الهاتف':'Phone Number'"></label>
+            <input type="text" name="phoneNumber" id="editPhoneNumber" class="input"/>
+          </div>
+          <div class="mgr-form-group">
+            <label th:text="${lang=='ar'}?'البريد الإلكتروني':'Email'"></label>
+            <input type="email" name="email" id="editEmail" required class="input"/>
+          </div>
+          <div class="mgr-form-group">
+            <label th:text="${lang=='ar'}?'كلمة المرور الجديدة (اتركها فارغة للاحتفاظ بالحالية)':'New Password (blank to keep current)'"></label>
+            <input type="password" name="password" class="input"
+                   th:placeholder="${lang=='ar'}?'كلمة المرور الجديدة (اختياري)':'New password (optional)'"/>
+          </div>
+          <div class="mgr-form-group">
+            <label th:text="${lang=='ar'}?'القسم':'Department'"></label>
+            <select id="editDepId" class="input">
+              <option value="" selected disabled th:text="${lang=='ar'}?'اختر القسم':'Select department'"></option>
+              <option th:each="d : ${departments}" th:value="${d.dep_id}" th:text="${d.dep_title}"></option>
+            </select>
+          </div>
+          <div class="mgr-form-group">
+            <label th:text="${lang=='ar'}?'الوظيفة':'Job'"></label>
+            <select name="jobId" id="editJobId" class="input">
+              <option value="" selected disabled th:text="${lang=='ar'}?'اختر الوظيفة':'Select job'"></option>
+              <option th:each="job : ${jobs}" th:value="${job.job_id}" th:text="${job.job_title}"></option>
+            </select>
+          </div>
+          <div class="mgr-form-group">
+            <label th:text="${lang=='ar'}?'الدور':'Role'"></label>
+            <select name="ruleId" id="editRuleId" class="input">
+              <option value="" selected th:text="${lang=='ar'}?'عامل (افتراضي)':'Worker (default)'"></option>
+              <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.name}"></option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--bdr)">
+          <button type="button" class="btn btn-outline"
+                  onclick="document.getElementById('editModal').classList.add('hidden')"
+                  th:text="${lang=='ar'}?'إلغاء':'Cancel'"></button>
+          <button type="submit" class="btn btn-primary"
+                  th:text="${lang=='ar'}?'حفظ التغييرات':'Save Changes'"></button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+<script>
+function setSelectValue(selectEl, value) {
+  if (!selectEl) return;
+  if (value === null || value === undefined || value === '') return;
+  selectEl.value = String(value);
+}
+
+function populateJobs(selectEl, jobs, selectedJobId) {
+  if (!selectEl) return;
+  const cur = selectEl.value;
+  selectEl.innerHTML = '';
+
+  const opt0 = document.createElement('option');
+  opt0.value = '';
+  opt0.disabled = true;
+  opt0.selected = true;
+  opt0.textContent = (document.documentElement.getAttribute('dir') === 'rtl') ? 'اختر الوظيفة' : 'Select job';
+  selectEl.appendChild(opt0);
+
+  (jobs || []).forEach(j => {
+    const opt = document.createElement('option');
+    opt.value = j.jobId;
+    opt.textContent = j.title;
+    selectEl.appendChild(opt);
+  });
+
+  if (selectedJobId != null) {
+    setSelectValue(selectEl, selectedJobId);
+  } else if (cur) {
+    setSelectValue(selectEl, cur);
+  }
+}
+
+function loadJobsForDep(depId, targetJobSelect, selectedJobId) {
+  if (!depId) return;
+  fetch('/manager/departments/' + depId + '/jobs')
+    .then(r => r.ok ? r.json() : [])
+    .then(list => populateJobs(targetJobSelect, list, selectedJobId))
+    .catch(() => {});
+}
+
+const regDep = document.getElementById('regDepId');
+const regJob = document.getElementById('regJobId');
+if (regDep && regJob) {
+  regDep.addEventListener('change', () => loadJobsForDep(regDep.value, regJob, null));
+}
+
+function openEditModal(userId) {
+  fetch('/manager/user/' + userId)
+    .then(r => r.json())
+    .then(data => {
+      if (data) {
+        document.getElementById('editUserId').value     = data.userId;
+        document.getElementById('editUsername').value   = data.username;
+        document.getElementById('editPhoneNumber').value= data.phoneNumber || '';
+        document.getElementById('editEmail').value      = data.email;
+        setSelectValue(document.getElementById('editRuleId'), data.ruleId || '');
+        setSelectValue(document.getElementById('editDepId'),  data.depId  || '');
+
+        const editJob = document.getElementById('editJobId');
+        if (data.depId) {
+          loadJobsForDep(data.depId, editJob, data.jobId);
+        } else {
+          setSelectValue(editJob, data.jobId);
+        }
+
+        document.getElementById('editModal').classList.remove('hidden');
+      }
+    })
+    .catch(() => alert('Error loading user data'));
+}
+
+const editDep = document.getElementById('editDepId');
+const editJob = document.getElementById('editJobId');
+if (editDep && editJob) {
+  editDep.addEventListener('change', () => loadJobsForDep(editDep.value, editJob, null));
+}
+
+document.addEventListener('click', e => {
+  if (e.target.id === 'editModal') {
+    e.target.classList.add('hidden');
+  }
+});
+</script>
+</body>
+</html>

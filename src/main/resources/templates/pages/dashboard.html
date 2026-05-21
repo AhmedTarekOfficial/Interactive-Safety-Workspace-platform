@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:attr="data-theme=${theme}, dir=${lang == 'ar' ? 'rtl' : 'ltr'}">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${lang=='ar'}?'سيف جارد — لوحة التحكم':'SafeGuard — Dashboard'">SafeGuard</title>
+    <link rel="icon" href="data:,"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+<body>
+<canvas id="safety-canvas"></canvas>
+<div id="toast-wrap" class="toast-wrap"></div>
+<div id="srv-toast" th:if="${toast != null}" th:attr="data-msg=${toast}" style="display:none"></div>
+
+<div class="shell">
+
+  <!-- Sidebar -->
+  <th:block th:replace="~{fragments/sidebar :: sidebar}"/>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <th:block th:replace="~{fragments/topbar :: topbar}"/>
+
+    <div class="page-body">
+
+      <!-- KPI Cards -->
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-ico">👷</div>
+          <div class="stat-value" th:text="${stats.totalEmployees}">0</div>
+          <div class="stat-lbl" th:text="${lang=='ar'}?'إجمالي الموظفين':'Total Employees'"></div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-ico">✅</div>
+          <div class="stat-value" th:text="${stats.activeLearners}">0</div>
+          <div class="stat-lbl" th:text="${lang=='ar'}?'الموظفون النشطون':'Active Learners'"></div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-ico">⚠</div>
+          <div class="stat-value" th:text="${stats.procrastinators}">0</div>
+          <div class="stat-lbl" th:text="${lang=='ar'}?'المتكاسلون (+7 أيام بدون نشاط)':'Procrastinators (7+ days idle)'"></div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-ico">🏆</div>
+          <div class="stat-value" th:text="${stats.overallCompletionRate}+'%'">0%</div>
+          <div class="stat-lbl" th:text="${lang=='ar'}?'معدل الإنجاز الكلي':'Overall Completion Rate'"></div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <form id="filter-form" method="get" th:action="@{/}" class="filter-bar">
+        <input type="hidden" name="lang"  th:value="${lang}"/>
+        <input type="hidden" name="theme" th:value="${theme}"/>
+        <div class="search-wrap">
+          <span class="search-ico">🔍</span>
+          <input type="text" id="search-input" name="query" class="search-input"
+                 th:value="${query}"
+                 th:placeholder="${lang=='ar'}?'بحث عن موظف...':'Search employees...'"
+                 autocomplete="off"/>
+        </div>
+        <select name="department" class="filter-sel" onchange="this.form.submit()">
+          <option value="ALL"           th:selected="${department=='ALL'}"           th:text="${lang=='ar'}?'جميع الأقسام':'All Departments'"></option>
+          <option value="MANUFACTURING" th:selected="${department=='MANUFACTURING'}" th:text="${lang=='ar'}?'التصنيع':'Manufacturing'"></option>
+          <option value="LOGISTICS"     th:selected="${department=='LOGISTICS'}"     th:text="${lang=='ar'}?'اللوجستيات':'Logistics'"></option>
+          <option value="MAINTENANCE"   th:selected="${department=='MAINTENANCE'}"   th:text="${lang=='ar'}?'الصيانة':'Maintenance'"></option>
+          <option value="HR"            th:selected="${department=='HR'}"            th:text="${lang=='ar'}?'الموارد البشرية':'HR'"></option>
+          <option value="OPERATIONS"    th:selected="${department=='OPERATIONS'}"    th:text="${lang=='ar'}?'العمليات':'Operations'"></option>
+        </select>
+        <select name="status" class="filter-sel" onchange="this.form.submit()">
+          <option value="ALL"            th:selected="${status=='ALL'}"            th:text="${lang=='ar'}?'كل الحالات':'All Status'"></option>
+          <option value="ACTIVE"         th:selected="${status=='ACTIVE'}"         th:text="${lang=='ar'}?'نشط':'Active'"></option>
+          <option value="PROCRASTINATOR" th:selected="${status=='PROCRASTINATOR'}" th:text="${lang=='ar'}?'متكاسل':'Procrastinator'"></option>
+          <option value="COMPLETED"      th:selected="${status=='COMPLETED'}"      th:text="${lang=='ar'}?'مكتمل':'Completed'"></option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm" th:text="${lang=='ar'}?'بحث':'Search'"></button>
+      </form>
+
+      <!-- Employee Table -->
+      <div class="table-card">
+        <div class="table-hdr">
+          <span class="table-hdr-title" th:text="${lang=='ar'}?'الموظفون':'Employees'"></span>
+          <span class="table-count" th:text="${employees.size()}+' '+(${lang=='ar'}?'موظف':'employees')"></span>
+        </div>
+
+        <div th:if="${employees.isEmpty()}" class="empty">
+          <div class="empty-ico">🔍</div>
+          <div class="empty-txt" th:text="${lang=='ar'}?'لا يوجد موظفون مطابقون':'No employees found'"></div>
+        </div>
+
+        <div th:unless="${employees.isEmpty()}" style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th th:text="${lang=='ar'}?'الموظف':'Employee'"></th>
+              <th th:text="${lang=='ar'}?'الحالة':'Status'"></th>
+              <th th:text="${lang=='ar'}?'الدورات':'Courses'"></th>
+              <th th:text="${lang=='ar'}?'اللعبة':'Game'"></th>
+              <th th:text="${lang=='ar'}?'نقاط السلامة':'Safety Score'"></th>
+              <th th:text="${lang=='ar'}?'آخر نشاط':'Last Active'"></th>
+              <th th:text="${lang=='ar'}?'الموعد النهائي':'Deadline'"></th>
+              <th th:text="${lang=='ar'}?'الإجراءات':'Actions'"></th>
+            </tr></thead>
+            <tbody>
+            <tr th:each="emp : ${employees}">
+              <td>
+                <div class="emp-cell">
+                  <div th:class="'avatar '+(${emp.safetyScore>=80}?'av-green':(${emp.safetyScore>=50}?'av-blue':(${emp.safetyScore>=20}?'av-orange':'av-red')))"
+                       th:text="${emp.avatarInitials}"></div>
+                  <div>
+                    <div class="emp-name" th:text="${lang=='ar'}?${emp.nameAr}:${emp.name}"></div>
+                    <div class="emp-dept" th:text="${lang=='ar'}?${emp.departmentAr}:${emp.department}"></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span th:class="'badge '+(${emp.status.name()=='ACTIVE'}?'b-active':(${emp.status.name()=='PROCRASTINATOR'}?'b-proc':'b-done'))">
+                  <span th:text="${emp.status.name()=='ACTIVE'}?(${lang=='ar'}?'🟢 نشط':'🟢 Active'):(${emp.status.name()=='PROCRASTINATOR'}?(${lang=='ar'}?'🔴 متكاسل':'🔴 Procrastinator'):(${lang=='ar'}?'🏆 مكتمل':'🏆 Completed'))"></span>
+                </span>
+              </td>
+              <td>
+                <div class="prog-wrap">
+                  <div class="prog-bg">
+                    <div class="prog-fill"
+                         th:style="'width:'+${emp.avgCourseProgress}+'%;background:'+(${emp.avgCourseProgress>=80}?'#10b981':(${emp.avgCourseProgress>=40}?'#f59e0b':'#ef4444'))"></div>
+                  </div>
+                  <span class="prog-pct" th:text="${#numbers.formatDecimal(emp.avgCourseProgress,1,0)}+'%'"></span>
+                </div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px"
+                     th:text="${emp.completedCourses}+'/'+${emp.totalCourses}+' '+(${lang=='ar'}?'مكتملة':'done')"></div>
+              </td>
+              <td>
+                <span th:if="${emp.gameProgress>=100}" class="game-badge g-done">🎮 <span th:text="${lang=='ar'}?'مكتملة':'Done'"></span></span>
+                <span th:if="${emp.gameProgress>0 and emp.gameProgress<100}" class="game-badge g-prog" th:text="'🎮 '+${emp.gameProgress}+'%'"></span>
+                <span th:if="${emp.gameProgress==0}" class="game-badge g-none" th:text="${lang=='ar'}?'— لم تبدأ':'— Not started'"></span>
+              </td>
+              <td>
+                <span th:style="'font-weight:700;font-size:14px;color:'+(${emp.safetyScore>=80}?'#10b981':(${emp.safetyScore>=50}?'#f59e0b':'#ef4444'))"
+                      th:text="${emp.safetyScore}+'%'"></span>
+              </td>
+              <td style="white-space:nowrap">
+                <span th:if="${emp.daysSinceActive==0}" style="color:#10b981;font-size:13px" th:text="${lang=='ar'}?'اليوم':'Today'"></span>
+                <span th:if="${emp.daysSinceActive==1}" style="color:#f59e0b;font-size:13px" th:text="${lang=='ar'}?'أمس':'Yesterday'"></span>
+                <span th:if="${emp.daysSinceActive>1}"
+                      th:style="'font-size:13px;color:'+(${emp.daysSinceActive>7}?'#ef4444':'var(--txt2)')"
+                      th:text="${emp.daysSinceActive}+' '+(${lang=='ar'}?'يوم':'d ago')"></span>
+              </td>
+              <td>
+                <span th:if="${emp.trainingDeadline!=null}"
+                      th:class="${emp.overdue}?'badge b-overdue':''"
+                      th:style="${!emp.overdue}?'font-size:13px;color:var(--txt2)':''"
+                      th:text="${emp.trainingDeadline}"></span>
+                <span th:if="${emp.trainingDeadline==null}" style="color:var(--muted);font-size:12px">—</span>
+              </td>
+              <td>
+                <div style="display:flex;gap:5px;align-items:center">
+                  <button class="btn-ico" th:data-id="${emp.id}" onclick="openDetailModal(this.dataset.id)">👁</button>
+                  <button class="btn-ico" th:data-id="${emp.id}" th:data-deadline="${emp.trainingDeadline}" onclick="openDeadlineModal(this.dataset.id, this.dataset.deadline)">📅</button>
+                  <button class="btn-ico danger" th:data-id="${emp.id}" th:attr="data-name=${emp.nameAr} ?: ${emp.name}" onclick="openResetModal(this.dataset.id, this.dataset.name)">🔄</button>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/modals :: modals}"/>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

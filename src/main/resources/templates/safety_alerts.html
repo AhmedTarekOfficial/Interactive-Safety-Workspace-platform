@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="dark" data-lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Safety Alerts</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Tajawal:wght@400;500;700;900&family=JetBrains+Mono:wght@700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            /* ألوانك الأصلية متلمستش */
+            "primary": "#8b5cf6",
+            "background-light": "#f6f7f8",
+            "background-dark": "#101922",
+          },
+          fontFamily: {
+            "display": ["Space Grotesk", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    /* ─── إعدادات الترجمة والاتجاهات (مع حماية الأيقونات) ─── */
+    html[data-lang="ar"] body,
+    html[data-lang="ar"] h1,
+    html[data-lang="ar"] h2,
+    html[data-lang="ar"] h3,
+    html[data-lang="ar"] h4,
+    html[data-lang="ar"] p,
+    html[data-lang="ar"] span:not(.material-symbols-outlined),
+    html[data-lang="ar"] a,
+    html[data-lang="ar"] button,
+    html[data-lang="ar"] li {
+      font-family: 'Tajawal', sans-serif !important;
+    }
+
+    html[data-lang="ar"] {
+      direction: rtl;
+    }
+
+    .ar {
+      display: none;
+    }
+
+    html[data-lang="ar"] .en {
+      display: none;
+    }
+
+    html[data-lang="ar"] .ar {
+      display: inline-block;
+    }
+
+    html[data-lang="ar"] .text-left {
+      text-align: right !important;
+    }
+
+    /* ─── خلفية الفيديو ─── */
+    body {
+      background: transparent !important;
+      min-height: 100vh;
+    }
+
+    #video-bg-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      overflow: hidden;
+      background: #101922;
+    }
+
+    #video-bg-container video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.6s ease-in-out;
+    }
+
+    #light-video {
+      opacity: 0;
+    }
+
+    #dark-video {
+      opacity: 1;
+    }
+
+    html:not(.dark) #light-video {
+      opacity: 1;
+    }
+
+    html:not(.dark) #dark-video {
+      opacity: 0;
+    }
+
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(16, 25, 34, 0.85);
+      transition: background 0.6s ease;
+    }
+
+    html:not(.dark) .video-overlay {
+      background: rgba(246, 247, 248, 0.7);
+    }
+
+    /* ─── الرادار المضيء ─── */
+    .scan-card {
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      will-change: transform;
+      border: 1px solid rgba(15, 102, 189, 0.2);
+    }
+
+    .scan-card::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      width: 100%;
+      top: 0;
+      height: 2px;
+      background: #0f66bd;
+      box-shadow: 0 0 15px 3px rgba(15, 102, 189, 0.6);
+      animation: scan 3s linear infinite alternate;
+      z-index: 10;
+      pointer-events: none;
+      border-radius: 50%;
+    }
+
+    @keyframes scan {
+      0% {
+        top: 0%;
+        opacity: 0;
+        transform: translateZ(10px);
+      }
+
+      10% {
+        opacity: 1;
+        transform: translateZ(10px);
+      }
+
+      90% {
+        opacity: 1;
+        transform: translateZ(10px);
+      }
+
+      100% {
+        top: 100%;
+        opacity: 0;
+        transform: translateZ(10px);
+      }
+    }
+
+    /* ─── الأيقونات المحفورة 3D ─── */
+    .engraved-icon-box {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      border-radius: 16px;
+      transform: translateZ(30px);
+      z-index: 2;
+      transition: transform 0.3s ease;
+      color: #0f66bd;
+      background: rgba(0, 0, 0, 0.05);
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.15), 0 2px 0 rgba(255, 255, 255, 1);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .dark .engraved-icon-box {
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.8), 0 1px 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .scan-card:hover .engraved-icon-box {
+      transform: scale(1.1) translateZ(40px);
+    }
+
+    .engraved-icon-box i {
+      filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.6));
+    }
+
+    /* ─── أدوات التحكم والناف بار ─── */
+    .hud-clock { 
+      font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700; color: #8b5cf6; 
+      letter-spacing: 1.5px; padding: 6px 14px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; 
+      background: rgba(139, 92, 246, 0.08); backdrop-filter: blur(12px); 
+      box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.2); text-shadow: 0 0 8px rgba(139, 92, 246, 0.6); 
+      min-width: 120px; text-align: center; display: flex; align-items: center; justify-content: center; 
+    }
+    html[data-lang="ar"] .hud-clock { font-family: 'Orbitron', monospace !important; }
+
+    .theme-switch {
+      position: relative; width: 50px; height: 26px; background: rgba(139, 92, 246, 0.1); 
+      border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 30px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(10px);
+    }
+    .theme-switch::after {
+      content: ''; position: absolute; left: 3px; top: 2px; width: 18px; height: 18px; border-radius: 50%;
+      background: #8b5cf6; transition: transform 0.4s; box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+    }
+    html[data-theme="dark"] .theme-switch::after { transform: translateX(24px); background: #fff; }
+
+    .lang-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Orbitron', monospace; font-weight: 700; font-size: 13px; color: #8b5cf6; 
+      padding: 6px 14px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; background: rgba(139, 92, 246, 0.1); 
+      cursor: pointer; transition: 0.3s; text-decoration: none;
+    }
+    .lang-btn:hover { background: #8b5cf6; color: #fff; border-color: #8b5cf6; box-shadow: 0 0 15px rgba(139, 92, 246, 0.6); }
+
+    .tc-back {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Orbitron', monospace; font-weight: 700; font-size: 13px; color: #8b5cf6; 
+      padding: 6px 14px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; background: rgba(139, 92, 246, 0.1); 
+      cursor: pointer; transition: 0.3s; text-decoration: none;
+    }
+    .tc-back:hover { background: #8b5cf6; color: #fff; border-color: #8b5cf6; box-shadow: 0 0 15px rgba(139, 92, 246, 0.6); }
+    .tc-back i { font-size: 16px; }
+
+    /* ─── الإشعارات ─── */
+    #notification-dropdown {
+      display: none;
+    }
+
+    #notification-toggle:checked~#notification-dropdown {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    html[data-lang="ar"] #notification-dropdown {
+      right: auto;
+      left: 0;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body
+  class="font-display bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 transition-colors duration-300">
+
+  <div id="video-bg-container">
+    <video id="light-video"
+      src="/videos/light-bg.mp4" autoplay
+      loop muted playsinline></video>
+    <video id="dark-video" src="/videos/dark-bg.mp4" autoplay
+      loop muted playsinline></video>
+    <div class="video-overlay"></div>
+  </div>
+
+  <div class="relative min-h-screen flex flex-col">
+    <header
+      class="sticky top-0 z-50 bg-nav-bg/80 backdrop-blur-md border-b border-border transition-colors duration-300">
+      <div class="w-full px-6 md:px-10">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full border-2 border-primary shadow-lg overflow-hidden">
+              <img th:src="${userProfilePic != null ? userProfilePic : (userGender == 'Female' ? 'https://avatar.iran.liara.run/public/girl' : 'https://avatar.iran.liara.run/public/boy')}" 
+                   th:attr="onerror=|this.src='https://ui-avatars.com/api/?name=${username}&background=f59e0b&color=fff'|"
+                   class="w-full h-full object-cover" alt="Logo">
+            </div>
+            <h1 class="text-xl font-bold text-slate-900 dark:text-white">
+              <span class="en">Safety Hub</span><span class="ar">مركز السلامة</span>
+            </h1>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="hud-clock" id="live-time">--:--:--</div>
+            <div class="theme-switch" id="themeToggle" title="Theme"></div>
+            <button class="lang-btn" id="langToggle"><span class="en">عربي</span><span class="ar">EN</span></button>
+            <a th:href="@{/index(lang=${lang},theme=${theme})}" class="tc-back">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span class="en">Back to Home</span><span class="ar">العودة للرئيسية</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-3xl font-bold text-slate-900 dark:text-white">
+          <span class="en">Safety Alerts</span><span class="ar">تنبيهات السلامة</span>
+        </h2>
+        <div class="hidden md:flex items-center gap-2 p-1 rounded-lg bg-slate-200 dark:bg-slate-800">
+          <button id="tab-active"
+            class="px-3 py-1.5 rounded-md text-sm font-medium bg-white dark:bg-slate-700 text-slate-800 dark:text-white transition-colors">
+            <span class="en">Active</span><span class="ar">نشط</span>
+          </button>
+          <button id="tab-acknowledged" class="px-3 py-1.5 rounded-md text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+            <span class="en">Acknowledged</span><span class="ar">مقروء</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid gap-6" style="perspective: 1200px;">
+        <div id="no-alerts-card" class="scan-card bg-white dark:bg-slate-900 rounded-lg shadow-md p-12 text-center">
+          <div class="flex flex-col items-center justify-center">
+            <div class="engraved-icon-box text-slate-400 dark:text-slate-600">
+              <i class="fa-solid fa-bell-slash"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2" style="transform: translateZ(15px);">
+              <span class="en">No Safety Alerts</span><span class="ar">لا توجد تنبيهات سلامة</span>
+            </h3>
+            <p class="text-slate-600 dark:text-slate-300" style="transform: translateZ(10px);">
+              <span class="en">There are currently no active safety alerts. All systems are operating normally.</span>
+              <span class="ar">لا توجد تنبيهات سلامة نشطة حالياً. جميع الأنظمة تعمل بشكل طبيعي.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="fixed bottom-8 right-8 rtl:left-8 rtl:right-auto z-10" th:if="${isManager or isAdmin}">
+      <button id="btn-create-alert"
+        class="bg-primary text-white rounded-full p-4 shadow-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-background-light dark:focus:ring-offset-background-dark transition-transform hover:scale-105">
+        <span class="material-symbols-outlined text-3xl">add</span>
+      </button>
+    </div>
+
+    <!-- Create Alert Modal -->
+    <div class="fixed inset-0 bg-black/50 z-30 hidden items-center justify-center" id="create-alert-modal">
+      <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-lg m-4 transform transition-all duration-300 scale-95 opacity-0 border border-slate-200 dark:border-slate-800">
+        <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white">
+            <span class="en">Create New Alert</span><span class="ar">إنشاء تنبيه جديد</span>
+          </h2>
+          <button class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 close-create">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="p-6 space-y-5">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <span class="en">Alert Title</span><span class="ar">عنوان التنبيه</span>
+            </label>
+            <input type="text" id="new-alert-title" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow shadow-sm hover:shadow" placeholder="Enter alert title">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <span class="en">Severity</span><span class="ar">مستوى الخطورة</span>
+            </label>
+            <select id="new-alert-severity" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow shadow-sm hover:shadow cursor-pointer">
+              <option value="low">Low / منخفضة</option>
+              <option value="medium">Medium / متوسطة</option>
+              <option value="high">High / عالية</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <span class="en">Description</span><span class="ar">الوصف</span>
+            </label>
+            <textarea id="new-alert-desc" rows="3" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow shadow-sm hover:shadow" placeholder="Enter alert details"></textarea>
+          </div>
+        </div>
+        <div class="p-5 bg-slate-50 dark:bg-slate-800/80 rounded-b-xl flex justify-end gap-3 border-t border-slate-200 dark:border-slate-800">
+          <button class="px-5 py-2.5 rounded-lg font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors close-create">
+            <span class="en">Cancel</span><span class="ar">إلغاء</span>
+          </button>
+          <button id="submit-new-alert" class="px-5 py-2.5 rounded-lg font-medium bg-primary text-white hover:bg-primary/90 transition-all shadow-md hover:shadow-lg active:scale-95">
+            <span class="en">Create Alert</span><span class="ar">إنشاء التنبيه</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="fixed inset-0 bg-black/50 z-30 hidden items-center justify-center" id="alert-details">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-lg m-4 transform transition-all duration-300 scale-95 opacity-0 border border-slate-200 dark:border-slate-800">
+        <div class="p-6">
+          <div class="flex items-start justify-between">
+            <h2 id="modal-title" class="text-xl font-bold text-slate-900 dark:text-white">
+              Alert Title
+            </h2>
+            <button
+              class="close-details text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus:outline-none shrink-0 ml-4">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div class="mt-5">
+            <div id="modal-icon-container" class="aspect-video bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center mb-5">
+              <div class="engraved-icon-box text-slate-400 dark:text-slate-600 mb-0">
+                <i id="modal-icon" class="fa-solid fa-image text-3xl"></i>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <p id="modal-desc" class="text-sm text-slate-600 dark:text-slate-300">
+                Description goes here...
+              </p>
+              <div class="flex items-center gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  <span class="en">Severity:</span><span class="ar">مستوى الخطورة:</span>
+                </span>
+                <span id="modal-severity"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300">
+                  MEDIUM
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 rounded-b-xl flex justify-between items-center">
+          <div class="flex items-center gap-2" th:if="${isManager or isAdmin}">
+            <button id="edit-alert-btn"
+              class="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 px-4 py-2 rounded-md font-semibold hover:bg-blue-200 dark:hover:bg-blue-900 focus:outline-none transition-all active:scale-95 shadow-sm">
+              <span class="en">Edit</span><span class="ar">تعديل</span>
+            </button>
+            <button id="delete-alert-btn"
+              class="bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 px-4 py-2 rounded-md font-semibold hover:bg-red-200 dark:hover:bg-red-900 focus:outline-none transition-all active:scale-95 shadow-sm">
+              <span class="en">Delete</span><span class="ar">حذف</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-3 ml-auto rtl:ml-0 rtl:mr-auto">
+            <span class="text-sm font-medium text-slate-500" id="detail-status"></span>
+            <button id="mark-ack-btn"
+              class="bg-primary text-white px-6 py-2.5 rounded-md font-semibold hover:bg-primary/90 focus:outline-none transition-all active:scale-95 shadow-md">
+              <span class="en">Mark as Acknowledged</span><span class="ar">تحديد كمقروء</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── الساعة والوقت ───
+    function updateClock() {
+      const el = document.getElementById('live-time');
+      if (!el) return;
+      const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+      const date = new Date();
+      let hours = date.getHours(); let minutes = date.getMinutes(); let seconds = date.getSeconds();
+      const ampm = hours >= 12 ? (isAr ? 'مساءً' : 'PM') : (isAr ? 'صباحاً' : 'AM');
+      hours = hours % 12; hours = hours ? hours : 12;
+      minutes = minutes < 10 ? '0' + minutes : minutes; seconds = seconds < 10 ? '0' + seconds : seconds;
+      el.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    // ─── الدارك مود ───
+    const html = document.documentElement;
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      html.classList.toggle('dark');
+      const t=html.getAttribute('data-theme')==='dark'?'light':'dark';
+      html.setAttribute('data-theme',t);
+    });
+
+    // ─── تبديل اللغة والاتجاهات ───
+    document.getElementById('langToggle').addEventListener('click', () => {
+      const isAr = html.getAttribute('data-lang') === 'en';
+      html.setAttribute('data-lang', isAr ? 'ar' : 'en');
+      html.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+      updateClock();
+    });
+
+    // ─── الـ 3D والرادار (مسمار) ───
+    const cards = document.querySelectorAll('.scan-card');
+
+    cards.forEach(card => {
+      // كارت كبير (العرض > 500px) يحتاج حساسية أقل بكثير
+      const isLargeCard = card.offsetWidth > 500;
+      const tiltFactor = isLargeCard ? 50 : 20;
+      const floatY     = isLargeCard ? -5  : -8;
+
+      card.floatTween = gsap.fromTo(card,
+        { y: 0 },
+        { y: floatY, duration: gsap.utils.random(2.5, 3.5), yoyo: true, repeat: -1, ease: "sine.inOut" }
+      );
+
+      card.addEventListener('mousemove', (e) => {
+        card.floatTween.pause();
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+
+        gsap.to(card, {
+          rotationX: -y / tiltFactor,
+          rotationY: x / tiltFactor,
+          z: isLargeCard ? 10 : 25,
+          scale: isLargeCard ? 1.005 : 1.02,
+          boxShadow: "0 20px 40px rgba(15, 102, 189, 0.3)",
+          borderColor: "rgba(15, 102, 189, 0.6)",
+          duration: isLargeCard ? 0.6 : 0.3,
+          ease: "power1.out"
+        });
+      });
+
+      card.addEventListener('mouseleave', () => {
+        gsap.to(card, {
+          rotationX: 0,
+          rotationY: 0,
+          z: 0,
+          scale: 1,
+          boxShadow: "none",
+          borderColor: "rgba(15, 102, 189, 0.2)",
+          duration: 0.6,
+          ease: "power2.out",
+          onComplete: () => {
+            card.floatTween = gsap.fromTo(card,
+              { y: 0 },
+              { y: floatY, duration: gsap.utils.random(2.5, 3.5), yoyo: true, repeat: -1, ease: "sine.inOut" }
+            );
+          }
+        });
+      });
+    });
+
+    // ─── منطق النافذة المنبثقة (Modal) للتفاصيل وربط الأحداث مع الـ LocalStorage ───
+    const grid = document.querySelector('.grid');
+    const detailsView = document.getElementById('alert-details');
+    const detailsContent = detailsView.querySelector('div');
+    const closeButtons = detailsView.querySelectorAll('.close-details');
+    const noAlertsCard = document.getElementById('no-alerts-card');
+    
+    let currentTab = 'active';
+    let editingAlertId = null;
+    let currentlyOpenedAlertId = null;
+
+    // Load from LocalStorage
+    let safetyAlerts = JSON.parse(localStorage.getItem('safetyAlerts')) || [];
+
+    function saveAlerts() {
+      localStorage.setItem('safetyAlerts', JSON.stringify(safetyAlerts));
+    }
+
+    // Toasts
+    function showToast(msg, isAr) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 opacity-0 translate-y-[-20px] font-bold';
+      toast.innerHTML = `<span class="material-symbols-outlined">check_circle</span> <span>${msg}</span>`;
+      document.body.appendChild(toast);
+      
+      requestAnimationFrame(() => {
+        toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+      });
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-[-20px]');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Render Alerts
+    function renderAlerts() {
+      // إزالة كل الكروت ما عدا الفاضي
+      document.querySelectorAll('.real-alert').forEach(el => el.remove());
+
+      let hasVisible = false;
+
+      safetyAlerts.forEach(alertData => {
+        let icon = 'fa-triangle-exclamation';
+        let sevColor = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300';
+        let borderColor = 'border-yellow-500';
+        let iconColor = 'text-yellow-500';
+
+        if (alertData.severity === 'high') {
+          icon = 'fa-radiation';
+          sevColor = 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
+          borderColor = 'border-red-500';
+          iconColor = 'text-red-500';
+        } else if (alertData.severity === 'low') {
+          icon = 'fa-circle-info';
+          sevColor = 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300';
+          borderColor = 'border-cyan-500';
+          iconColor = 'text-cyan-500';
+        }
+
+        const isVisible = alertData.status === currentTab;
+        if (isVisible) hasVisible = true;
+
+        const newCardHtml = `
+          <div data-id="${alertData.id}" class="scan-card real-alert bg-white dark:bg-slate-900 rounded-lg shadow-md p-6 border-l-4 ${borderColor} hover:shadow-lg transition-all cursor-pointer ${!isVisible ? 'hidden' : ''}">
+            <div class="flex items-start gap-4">
+              <div class="engraved-icon-box ${iconColor} mb-0 shrink-0">
+                <i class="fa-solid ${icon}"></i>
+              </div>
+              <div class="flex-grow">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-lg font-bold text-slate-900 dark:text-white" style="transform: translateZ(15px);">
+                    ${alertData.title}
+                  </h3>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${sevColor}" data-raw-sev="${alertData.severity}">
+                    ${alertData.severity.toUpperCase()}
+                  </span>
+                </div>
+                <p class="text-sm text-slate-600 dark:text-slate-300 line-clamp-2" style="transform: translateZ(10px);">
+                  ${alertData.desc}
+                </p>
+              </div>
+            </div>
+          </div>
+        `;
+        grid.insertAdjacentHTML('afterbegin', newCardHtml);
+        
+        // Setup 3D float for the newly rendered card
+        const newlyAdded = grid.firstElementChild;
+        if (isVisible) {
+          const floatY = newlyAdded.offsetWidth > 500 ? -5 : -8;
+          newlyAdded.floatTween = gsap.fromTo(newlyAdded, { y: 0 }, { y: floatY, duration: gsap.utils.random(2.5, 3.5), yoyo: true, repeat: -1, ease: "sine.inOut" });
+          newlyAdded.addEventListener('mousemove', (e) => {
+            newlyAdded.floatTween.pause();
+            const rect = newlyAdded.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            gsap.to(newlyAdded, { rotationX: -y / 20, rotationY: x / 20, z: 25, scale: 1.02, boxShadow: "0 20px 40px rgba(15, 102, 189, 0.3)", duration: 0.3, ease: "power1.out" });
+          });
+          newlyAdded.addEventListener('mouseleave', () => {
+            gsap.to(newlyAdded, { rotationX: 0, rotationY: 0, z: 0, scale: 1, boxShadow: "none", duration: 0.6, ease: "power2.out", onComplete: () => newlyAdded.floatTween.play() });
+          });
+        }
+      });
+
+      if (noAlertsCard) noAlertsCard.style.display = hasVisible ? 'none' : 'block';
+    }
+
+    function showDetails(alertId) {
+      currentlyOpenedAlertId = alertId;
+      const alertData = safetyAlerts.find(a => a.id == alertId);
+      if (!alertData) return;
+      
+      document.getElementById('modal-title').textContent = alertData.title;
+      document.getElementById('modal-desc').textContent = alertData.desc;
+      
+      let icon = 'fa-triangle-exclamation';
+      let sevColor = 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300';
+      let iconColor = 'text-yellow-500';
+
+      if (alertData.severity === 'high') {
+        icon = 'fa-radiation';
+        sevColor = 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300';
+        iconColor = 'text-red-500';
+      } else if (alertData.severity === 'low') {
+        icon = 'fa-circle-info';
+        sevColor = 'bg-cyan-100 dark:bg-cyan-900/50 text-cyan-800 dark:text-cyan-300';
+        iconColor = 'text-cyan-500';
+      }
+
+      const modalSev = document.getElementById('modal-severity');
+      modalSev.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${sevColor}`;
+      modalSev.textContent = alertData.severity.toUpperCase();
+
+      const modalIconContainer = document.getElementById('modal-icon-container').querySelector('.engraved-icon-box');
+      modalIconContainer.className = `engraved-icon-box ${iconColor} mb-0 shrink-0`;
+      document.getElementById('modal-icon').className = `fa-solid ${icon} text-4xl`;
+
+      const ackBtn = document.getElementById('mark-ack-btn');
+      const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+      
+      if (alertData.status === 'ack') {
+        ackBtn.style.display = 'none';
+        document.getElementById('detail-status').textContent = isAr ? 'هذا التنبيه مقروء' : 'This alert is acknowledged';
+      } else {
+        ackBtn.style.display = 'block';
+        document.getElementById('detail-status').textContent = '';
+      }
+
+      detailsView.classList.remove('hidden');
+      detailsView.classList.add('flex');
+      setTimeout(() => {
+        detailsContent.classList.remove('scale-95', 'opacity-0');
+      }, 10);
+    }
+
+    function hideDetails() {
+      detailsContent.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        detailsView.classList.add('hidden');
+        detailsView.classList.remove('flex');
+        currentlyOpenedAlertId = null;
+      }, 300);
+    }
+
+    // Event Delegation
+    grid.addEventListener('click', (e) => {
+      const card = e.target.closest('.scan-card');
+      if (!card) return;
+      if (card.id === 'no-alerts-card') return;
+      showDetails(card.getAttribute('data-id'));
+    });
+
+    closeButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => { e.stopPropagation(); hideDetails(); });
+    });
+    detailsView.addEventListener('click', (e) => {
+      if (e.target === detailsView) hideDetails();
+    });
+
+    // Mark as Ack
+    document.getElementById('mark-ack-btn').addEventListener('click', () => {
+      if (currentlyOpenedAlertId) {
+        const idx = safetyAlerts.findIndex(a => a.id == currentlyOpenedAlertId);
+        if (idx > -1) {
+          safetyAlerts[idx].status = 'ack';
+          saveAlerts();
+          renderAlerts();
+          const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+          showToast(isAr ? 'تم تحديد التنبيه كمقروء' : 'Marked as Acknowledged!', isAr);
+        }
+      }
+      hideDetails();
+    });
+
+    // Edit Alert
+    const editBtn = document.getElementById('edit-alert-btn');
+    if (editBtn) {
+      editBtn.addEventListener('click', () => {
+        if (currentlyOpenedAlertId) {
+          const alertData = safetyAlerts.find(a => a.id == currentlyOpenedAlertId);
+          if (alertData) {
+            document.getElementById('new-alert-title').value = alertData.title;
+            document.getElementById('new-alert-severity').value = alertData.severity;
+            document.getElementById('new-alert-desc').value = alertData.desc;
+            
+            editingAlertId = currentlyOpenedAlertId;
+            const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+            document.getElementById('submit-new-alert').innerHTML = isAr ? 'تحديث التنبيه' : 'Update Alert';
+            
+            hideDetails();
+            showCreateModal();
+          }
+        }
+      });
+    }
+
+    // Delete Alert
+    const deleteBtn = document.getElementById('delete-alert-btn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => {
+        if (currentlyOpenedAlertId) {
+          const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+          if(confirm(isAr ? 'هل أنت متأكد من حذف هذا التنبيه؟' : 'Are you sure you want to delete this alert?')) {
+            safetyAlerts = safetyAlerts.filter(a => a.id != currentlyOpenedAlertId);
+            saveAlerts();
+            renderAlerts();
+            showToast(isAr ? 'تم حذف التنبيه بنجاح' : 'Alert deleted successfully!', isAr);
+            hideDetails();
+          }
+        }
+      });
+    }
+
+    // ─── التبديل بين Active و Acknowledged ───
+    const tabActive = document.getElementById('tab-active');
+    const tabAck = document.getElementById('tab-acknowledged');
+    const activeClasses = ['bg-white', 'dark:bg-slate-700', 'text-slate-800', 'dark:text-white'];
+    const inactiveClasses = ['text-slate-500', 'dark:text-slate-400', 'hover:text-slate-700', 'dark:hover:text-slate-300', 'bg-transparent'];
+
+    function switchTab(clickedTab, otherTab, statusToShow) {
+      clickedTab.classList.remove(...inactiveClasses);
+      clickedTab.classList.add(...activeClasses);
+      otherTab.classList.remove(...activeClasses);
+      otherTab.classList.add(...inactiveClasses);
+      currentTab = statusToShow;
+      renderAlerts();
+    }
+
+    tabActive.addEventListener('click', () => switchTab(tabActive, tabAck, 'active'));
+    tabAck.addEventListener('click', () => switchTab(tabAck, tabActive, 'ack'));
+
+    // ─── منطق النافذة المنبثقة لإنشاء وتعديل Alert ───
+    const btnCreateAlert = document.getElementById('btn-create-alert');
+    const createAlertModal = document.getElementById('create-alert-modal');
+    const createAlertContent = createAlertModal.querySelector('div');
+    const createCloseBtns = createAlertModal.querySelectorAll('.close-create');
+
+    function showCreateModal() {
+      createAlertModal.classList.remove('hidden');
+      createAlertModal.classList.add('flex');
+      setTimeout(() => {
+        createAlertContent.classList.remove('scale-95', 'opacity-0');
+      }, 10);
+    }
+
+    function hideCreateModal() {
+      createAlertContent.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        createAlertModal.classList.add('hidden');
+        createAlertModal.classList.remove('flex');
+        
+        // Reset form to Create mode
+        setTimeout(() => {
+          document.getElementById('new-alert-title').value = '';
+          document.getElementById('new-alert-desc').value = '';
+          document.getElementById('new-alert-severity').value = 'low';
+          editingAlertId = null;
+          const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+          document.getElementById('submit-new-alert').innerHTML = isAr ? 'إنشاء التنبيه' : 'Create Alert';
+        }, 300);
+      }, 300);
+    }
+
+    if (btnCreateAlert) {
+      btnCreateAlert.addEventListener('click', () => {
+        editingAlertId = null; // Ensure we are creating
+        const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+        document.getElementById('submit-new-alert').innerHTML = isAr ? 'إنشاء التنبيه' : 'Create Alert';
+        showCreateModal();
+      });
+    }
+
+    createCloseBtns.forEach(btn => btn.addEventListener('click', hideCreateModal));
+    createAlertModal.addEventListener('click', (e) => {
+      if (e.target === createAlertModal) hideCreateModal();
+    });
+
+    const submitNewAlertBtn = document.getElementById('submit-new-alert');
+    submitNewAlertBtn.addEventListener('click', () => {
+      const title = document.getElementById('new-alert-title').value || 'New Alert';
+      const severity = document.getElementById('new-alert-severity').value;
+      const desc = document.getElementById('new-alert-desc').value || 'No description provided.';
+      
+      const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+
+      if (editingAlertId) {
+        const idx = safetyAlerts.findIndex(a => a.id == editingAlertId);
+        if (idx > -1) {
+          safetyAlerts[idx].title = title;
+          safetyAlerts[idx].severity = severity;
+          safetyAlerts[idx].desc = desc;
+          showToast(isAr ? 'تم تحديث التنبيه بنجاح!' : 'Success! Alert Updated.', isAr);
+        }
+      } else {
+        const newAlert = {
+          id: Date.now().toString(),
+          title: title,
+          severity: severity,
+          desc: desc,
+          status: 'active',
+          createdAt: new Date().toISOString()
+        };
+        safetyAlerts.push(newAlert);
+        showToast(isAr ? 'تمت إضافة التنبيه بنجاح!' : 'Success! Alert Added.', isAr);
+      }
+      
+      saveAlerts();
+      renderAlerts();
+      hideCreateModal();
+    });
+
+    // Initial Render
+    renderAlerts();
+  </script>
+</body>
+
+</html>
