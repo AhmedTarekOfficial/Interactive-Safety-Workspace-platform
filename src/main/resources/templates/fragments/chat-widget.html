@@ -1,0 +1,38 @@
+<div id="ai-chat-widget">
+    <!-- Floating Button -->
+    <div id="ai-chat-button" onclick="toggleChat()">
+        <i class="fa-solid fa-robot"></i>
+        <div class="glow-effect"></div>
+    </div>
+
+    <!-- Chat Container -->
+    <div id="ai-chat-container" class="collapsed">
+        <div class="chat-header">
+            <div class="chat-title">
+                <i class="fa-solid fa-microchip"></i>
+                <span class="en">Safety AI Agent</span>
+                <span class="ar" style="display:none;">مساعد السلامة الذكي</span>
+            </div>
+            <button class="close-btn" onclick="toggleChat()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="chat-body" id="chat-messages">
+            <div class="message ai-message">
+                <div class="msg-content">
+                    <span class="en">Hello! I am your Safety AI Agent. How can I help you today?</span>
+                    <span class="ar" style="display:none;">أهلاً بيك! أنا مساعد السلامة الذكي بتاعك. أقدر أساعدك إزاي النهاردة؟</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+            <button class="send-btn" onclick="sendMessage()">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" th:href="@{/css/chat-widget.css}">
+<script th:src="@{/js/chat-widget.js}"></script>

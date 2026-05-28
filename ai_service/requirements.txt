@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+langchain
+langchain-community
+langchain-huggingface
+langgraph
+langchain-chroma
+sentence-transformers
+requests
