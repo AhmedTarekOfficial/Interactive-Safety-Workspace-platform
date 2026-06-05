@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SafeSpace · Manager Command Center</title>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
   <style>
     /* ── Core Variables (Dark default) ── */
     :root {
@@ -200,11 +201,56 @@
     .modal-overlay.active .modal-panel { transform:scale(1); }
     .modal-panel h3 { margin:0; color:var(--text-primary); font-size:1.6rem; font-weight:800; }
 
-    .overview-stat-card { background:var(--glass-bg); backdrop-filter:blur(16px); border-radius:calc(var(--radius-lg)*1.1); border:1px solid var(--glass-border); padding:36px; text-align:center; transition:0.4s; display:flex; flex-direction:column; align-items:center; }
-    .overview-stat-card:hover { transform:translateY(-6px); border-color:rgba(59,130,246,0.5); box-shadow:0 15px 40px rgba(59,130,246,0.2); }
-    .overview-stat-card svg { width:56px; height:56px; margin-bottom:20px; color:var(--blue-accent); }
-    .stat-value { font-size:3.2rem; font-weight:800; color:var(--text-primary); margin-bottom:6px; line-height:1; }
-    .overview-stat-card div:last-child { font-size:1.1rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+    .overview-top-bar { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .overview-top-card { flex: 1; min-width: 150px; background: var(--glass-bg); backdrop-filter: blur(16px); border-radius: var(--radius-md); border: 1px solid var(--glass-border); padding: 16px 20px; display: flex; align-items: center; gap: 16px; transition: 0.3s; }
+    .overview-top-card:hover { transform: translateY(-3px); border-color: rgba(59,130,246,0.4); box-shadow: 0 8px 24px rgba(59,130,246,0.15); }
+    .overview-top-card i { color: var(--blue-accent); width: 32px; height: 32px; }
+    .overview-top-card .stat-info { display: flex; flex-direction: column; gap: 4px; text-align: start; }
+    .overview-top-card .stat-val { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+    .overview-top-card .stat-lbl { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .chart-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+    .chart-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
+    .time-filters { display: flex; gap: 8px; background: rgba(10,12,22,0.4); padding: 6px; border-radius: 30px; border: 1px solid var(--glass-border); }
+    .time-filter-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    .time-filter-btn.active { background: var(--blue-primary); color: #fff; box-shadow: 0 4px 16px var(--blue-glow); }
+    .time-filter-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+
+    .hologram-container { position: relative; width: 100%; height: 480px; perspective: 1200px; transform-style: preserve-3d; }
+    .chart-3d-wrapper { width: 100%; height: 100%; border-radius: var(--radius-lg); background: linear-gradient(135deg, rgba(14,16,30,0.4), rgba(20,24,42,0.2)); border: 1px solid var(--glass-border); box-shadow: inset 0 0 40px rgba(59,130,246,0.05), 0 20px 50px rgba(0,0,0,0.5); transform: rotateX(6deg) translateZ(0); transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.6s; position: relative; overflow: hidden; }
+    .chart-3d-wrapper:hover { transform: rotateX(0deg) translateY(-8px) translateZ(20px); box-shadow: inset 0 0 60px rgba(59,130,246,0.1), 0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(59,130,246,0.3); }
+    .chart-3d-wrapper::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(59,130,246,0.1) 0%, transparent 50%); pointer-events: none; mix-blend-mode: screen; animation: glowSpin 20s linear infinite; }
+    @keyframes glowSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .activity-modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; pointer-events: none; perspective: 1200px; }
+    .activity-modal.active { pointer-events: auto; }
+    .activity-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.4); transition: 0.5s; opacity: 0; }
+    .activity-modal.active .activity-modal-backdrop { backdrop-filter: blur(16px); opacity: 1; }
+    .activity-panel { position: relative; width: 90%; max-width: 600px; background: rgba(14,16,30,0.85); backdrop-filter: blur(24px); border-radius: var(--radius-lg); border: 1px solid rgba(59,130,246,0.4); padding: 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(59,130,246,0.2), inset 0 0 80px rgba(59,130,246,0.05); transform: translateZ(-200px) rotateX(20deg) scale(0.8); opacity: 0; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; gap: 24px; max-height: 80vh; overflow-y: auto; }
+    .activity-modal.active .activity-panel { transform: translateZ(0) rotateX(0deg) scale(1); opacity: 1; }
+    .activity-panel::-webkit-scrollbar { width: 6px; }
+    .activity-panel::-webkit-scrollbar-track { background: transparent; }
+    .activity-panel::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.4); border-radius: 10px; }
+    .activity-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 16px; }
+    .activity-header h3 { margin: 0; font-size: 1.6rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 12px; }
+    .activity-header h3 span { color: var(--blue-accent); font-weight: 400; font-size: 1.1rem; }
+    .close-activity-btn { background: rgba(255,255,255,0.05); border: none; color: var(--text-muted); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+    .close-activity-btn:hover { background: rgba(239,68,68,0.2); color: #f87171; transform: rotate(90deg); }
+    .activity-list { display: flex; flex-direction: column; gap: 16px; }
+    .activity-item { display: flex; gap: 16px; background: rgba(255,255,255,0.03); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; transform: translateX(-20px); opacity: 0; }
+    .activity-modal.active .activity-item { transform: translateX(0); opacity: 1; }
+    .activity-item:nth-child(1) { transition-delay: 0.1s; }
+    .activity-item:nth-child(2) { transition-delay: 0.2s; }
+    .activity-item:nth-child(3) { transition-delay: 0.3s; }
+    .activity-item:nth-child(4) { transition-delay: 0.4s; }
+    .activity-item:hover { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.2); transform: translateX(5px); }
+    .act-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .act-icon.course { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .act-icon.incident { background: rgba(239,68,68,0.15); color: #f87171; }
+    .act-icon.login { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .act-content { display: flex; flex-direction: column; gap: 4px; justify-content: center; text-align: start; }
+    .act-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
+    .act-time { font-size: 0.85rem; color: var(--text-muted); }
 
     .tab-content { display:none; }
     .tab-content.active { display:block; animation: fadeSlideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
@@ -314,15 +360,57 @@
 
     <!-- Overview Tab -->
     <div class="tab-content" id="tab-overview">
-      <div class="content-card">
-        <h2 class="section-title" data-i18n="over_title">Safety Overview</h2>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px;">
-          <div class="overview-stat-card"><i data-lucide="check-circle-2"></i><div class="stat-value">98.7%</div><div data-i18n="compliance">Compliance</div></div>
-          <div class="overview-stat-card"><i data-lucide="hard-hat"></i><div class="stat-value" id="stat-employees">0</div><div data-i18n="total_emp">Employees</div></div>
-          <div class="overview-stat-card"><i data-lucide="alert-triangle"></i><div class="stat-value">3</div><div data-i18n="incidents">Open Incidents</div></div>
-          <div class="overview-stat-card"><i data-lucide="clipboard-check"></i><div class="stat-value">12</div><div data-i18n="trainings">Trainings Done</div></div>
+      
+      <!-- Top Stats Header -->
+      <div class="overview-top-bar">
+        <div class="overview-top-card">
+          <i data-lucide="check-circle-2"></i>
+          <div class="stat-info">
+            <div class="stat-val">98.7%</div>
+            <div class="stat-lbl" data-i18n="compliance">Compliance</div>
+          </div>
+        </div>
+        <div class="overview-top-card">
+          <i data-lucide="hard-hat"></i>
+          <div class="stat-info">
+            <div class="stat-val" id="stat-employees">0</div>
+            <div class="stat-lbl" data-i18n="total_emp">Employees</div>
+          </div>
+        </div>
+        <div class="overview-top-card">
+          <i data-lucide="alert-triangle"></i>
+          <div class="stat-info">
+            <div class="stat-val">3</div>
+            <div class="stat-lbl" data-i18n="incidents">Open Incidents</div>
+          </div>
+        </div>
+        <div class="overview-top-card">
+          <i data-lucide="clipboard-check"></i>
+          <div class="stat-info">
+            <div class="stat-val">12</div>
+            <div class="stat-lbl" data-i18n="trainings">Trainings Done</div>
+          </div>
         </div>
       </div>
+
+      <!-- 3D Motivation Chart Container -->
+      <div class="content-card" style="padding: 30px;">
+        <div class="chart-section-header">
+          <h2 class="chart-title" data-i18n="motivation_trend">Department Performance — Real Data</h2>
+          <div class="time-filters">
+            <button class="time-filter-btn active" data-time="all">All Metrics</button>
+            <button class="time-filter-btn" data-time="course">Course %</button>
+            <button class="time-filter-btn" data-time="platform">Platform %</button>
+            <button class="time-filter-btn" data-time="overall">Overall</button>
+          </div>
+        </div>
+        <div class="hologram-container">
+          <div class="chart-3d-wrapper">
+            <div id="motivation-chart" style="width: 100%; height: 100%;"></div>
+          </div>
+        </div>
+      </div>
+      
     </div>
   </div>
 
@@ -335,6 +423,19 @@
   <div class="modal-overlay" id="modal-delete-dept"><div class="modal-panel"><h3 data-i18n="confirm_del_dept">Delete Department?</h3><p id="del-dept-name"></p><div style="display:flex; gap:10px; justify-content:center;"><button class="btn btn-outline cancel-modal" data-i18n="cancel">Cancel</button><button class="btn btn-delete" id="confirm-del-dept" data-i18n="delete">Delete</button></div></div></div>
   <div class="modal-overlay" id="modal-delete-event"><div class="modal-panel"><h3 data-i18n="confirm_del_event">Remove Event?</h3><p id="del-event-title"></p><div style="display:flex; gap:10px; justify-content:center;"><button class="btn btn-outline cancel-modal" data-i18n="cancel">Cancel</button><button class="btn btn-delete" id="confirm-del-event" data-i18n="delete">Delete</button></div></div></div>
 
+  <!-- 3D Activity Drill-down Modal -->
+  <div class="activity-modal" id="modal-activity-details">
+    <div class="activity-modal-backdrop" onclick="document.getElementById('modal-activity-details').classList.remove('active')"></div>
+    <div class="activity-panel">
+      <div class="activity-header">
+        <h3 id="activity-modal-title"><i data-lucide="activity"></i> <span id="activity-modal-date"></span></h3>
+        <button class="close-activity-btn" onclick="document.getElementById('modal-activity-details').classList.remove('active')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="activity-list" id="activity-list-container">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
   <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function() {
 
@@ -354,18 +455,29 @@
       let departments = [
         /*[# th:each="d : ${departments}"]*/ 
         { 
-            id: /*[[${d.dep_id}]]*/ 'DEPT-1', 
-            name: /*[[${d.dep_title}]]*/ 'Production', 
-            capacity: /*[[${d.department_capacity}]]*/ 100
+            id: /*[[${d.dep_id}]]*/ 0, 
+            name: /*[[${d.dep_title}]]*/ 'N/A', 
+            capacity: /*[[${d.department_capacity}]]*/ 0
         },
         /*[/]*/
       ];
 
-      let events = [
-        { id:'EVT-001', type:'first_aid', description:'Annual first aid refresher for all staff', date:'2026-05-10' },
-        { id:'EVT-002', type:'warning', description:'Slippery floor in sector B – caution advised', date:'2026-04-28' },
+      // Real department performance stats injected from the backend
+      let deptStats = [
+        /*[# th:each="d : ${deptStats}"]*/ 
+        {
+            name:          /*[[${d.name}]]*/ 'General',
+            courseProgress: /*[[${d.avgCourseProgress}]]*/ 0,
+            gameProgress:   /*[[${d.avgGameProgress}]]*/ 0,
+            overallScore:   /*[[${d.overallScore}]]*/ 0,
+            employeeCount:  /*[[${d.employeeCount}]]*/ 0
+        },
+        /*[/]*/
       ];
-      let empNextId=7, deptNextId=6, eventNextId=3;
+
+      // No pre-loaded fake events — only real events entered by the manager appear here
+      let events = [];
+      let eventNextId = 1;
 
       // ── Translations (professional Arabic) ──
       const i18n = {
@@ -814,13 +926,19 @@
         showToast(t('event_deleted'), 'info');
       });
 
-      // Tab switching
+      // Tab switching (includes chart init on overview tab click)
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', ()=>{
           document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
           document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.remove('active'));
           document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+          if(btn.dataset.tab === 'overview') {
+            setTimeout(() => {
+              if(window._motivationChart) window._motivationChart.resize();
+              else initMotivationChart('months');
+            }, 80);
+          }
         });
       });
 
@@ -833,22 +951,247 @@
         applyLanguage(b.dataset.lang);
       }));
 
-      // Sign out
-      // document.querySelector('.signout-btn').addEventListener('click', ()=> showToast(t('signout_sim'), 'info'));
-
       // Starfield
       const canvas=document.getElementById('starfield'), ctx=canvas.getContext('2d');
       let stars=[];
       function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
-      resize(); window.addEventListener('resize',()=>{ resize(); initStars(); });
+      resize(); window.addEventListener('resize',()=>{ resize(); initStars(); if(window._motivationChart) window._motivationChart.resize(); });
       function initStars(){ stars=Array.from({length:140},()=>({ x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+0.5, base:Math.random()*0.6+0.3, speed:0.005+Math.random()*0.02, offset:Math.random()*Math.PI*2 })); }
       initStars();
-      function animate(){
+      function animateStars(){
         ctx.clearRect(0,0,canvas.width,canvas.height);
         stars.forEach(s=>{ s.alpha=s.base+Math.sin(Date.now()*s.speed+s.offset)*0.25; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle=`rgba(180,210,255,${Math.max(0.1,s.alpha)})`; ctx.fill(); });
-        requestAnimationFrame(animate);
+        requestAnimationFrame(animateStars);
       }
-      animate();
+      animateStars();
+
+      // ─────────────────────────────────────────────────────────────────────────
+      // ── 3D MOTIVATION CHART ENGINE ───────────────────────────────────────────
+      // ─────────────────────────────────────────────────────────────────────────
+
+
+      function genMotivationData(mode) {
+        if (!deptStats || deptStats.length === 0) {
+          // No departments in DB yet — return an empty-state dataset
+          return { labels: ['No Departments'], values1: [0], values2: [0], values3: [0] };
+        }
+        const labels   = deptStats.map(d => d.name);
+        const values1  = deptStats.map(d => Math.round(d.courseProgress * 10) / 10);  // avg course %
+        const values2  = deptStats.map(d => Math.round(d.gameProgress  * 10) / 10);  // platform/game %
+        const values3  = deptStats.map(d => Math.round(d.overallScore  * 10) / 10);  // overall score
+        return { labels, values1, values2, values3 };
+      }
+
+      function buildChartOption(mode, isLight) {
+        const raw = genMotivationData(mode);
+        // Apply metric filter: hide series based on selected mode
+        const data = {
+          labels:  raw.labels,
+          values1: (mode === 'platform' || mode === 'overall') ? [] : raw.values1,
+          values2: (mode === 'course'   || mode === 'overall') ? [] : raw.values2,
+          values3: (mode === 'course'   || mode === 'platform') ? [] : raw.values3
+        };
+        const gridC  = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+        const axisC  = isLight ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.35)';
+        const labelC = isLight ? '#4b5563'           : '#8892a8';
+
+        const makeSeries = (name, data, color, gFrom, gTo, symbolColor) => ({
+          name, type: 'line', data, smooth: true, symbol: 'circle', symbolSize: 9,
+          itemStyle: { color: symbolColor, borderColor: '#fff', borderWidth: 2,
+            shadowBlur: 16, shadowColor: color },
+          lineStyle: { width: 3, color: { type:'linear', x:0, y:0, x2:1, y2:0,
+            colorStops:[{offset:0,color:gFrom},{offset:1,color:gTo}] },
+            shadowBlur: 20, shadowColor: color },
+          areaStyle: { opacity: 0.12,
+            color: { type:'linear', x:0, y:0, x2:0, y2:1,
+              colorStops:[{offset:0,color:gFrom},{offset:1,color:'transparent'}] } },
+          emphasis: { scale: true, itemStyle: { color: symbolColor, borderColor:'#fff', borderWidth:3,
+            shadowBlur: 30, shadowColor: color }, lineStyle: { width: 5 } }
+        });
+
+        return {
+          animation: true, animationDuration: 1400, animationEasing: 'cubicOut',
+          backgroundColor: 'transparent',
+          tooltip: {
+            trigger: 'axis', axisPointer: { type: 'cross',
+              crossStyle: { color: 'rgba(59,130,246,0.5)', width: 1 },
+              lineStyle:  { color: 'rgba(59,130,246,0.3)', type: 'dashed' } },
+            backgroundColor: isLight ? 'rgba(255,255,255,0.92)' : 'rgba(10,12,25,0.92)',
+            borderColor: 'rgba(59,130,246,0.5)', borderWidth: 1,
+            borderRadius: 14, padding: [14, 20],
+            textStyle: { color: isLight ? '#0b0f1c' : '#fff', fontSize: 13, fontFamily: 'Inter, sans-serif' },
+            formatter(params) {
+              const deptName = params[0] && params[0].name ? params[0].name : '';
+              let html = `<div style="font-size:11px;font-weight:700;color:rgba(96,165,250,1);margin-bottom:8px;letter-spacing:.05em;text-transform:uppercase">${deptName}</div>`;
+              params.forEach(p => {
+                html += `<div style="display:flex;align-items:center;gap:8px;margin:4px 0">
+                  <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color};box-shadow:0 0 6px ${p.color}"></span>
+                  <span style="font-weight:600">${p.seriesName}:</span>
+                  <span style="font-weight:800;color:${p.color}">${p.value}%</span>
+                </div>`;
+              });
+              html += `<div style="margin-top:10px;font-size:11px;color:rgba(96,165,250,0.7)">↗ Click to see department details</div>`;
+              return html;
+            }
+          },
+          legend: {
+            top: 10, right: 16, orient: 'horizontal', itemWidth: 14, itemHeight: 14,
+            textStyle: { color: labelC, fontSize: 13, fontFamily: 'Inter, sans-serif', fontWeight: 600 },
+            icon: 'roundRect', borderRadius: 4,
+            data: ['Avg Course Progress %', 'Avg Platform Progress %', 'Overall Score %']
+          },
+          grid: { top: 55, left: 60, right: 30, bottom: 50 },
+          xAxis: { type: 'category', data: data.labels, boundaryGap: false,
+            axisLine: { lineStyle: { color: axisC } },
+            axisTick: { show: false },
+            axisLabel: { color: labelC, fontSize: 12, fontFamily: 'Inter, sans-serif', fontWeight: 600,
+              rotate: data.labels.length > 14 ? 35 : 0 },
+            splitLine: { show: false }
+          },
+          yAxis: { type: 'value', min: 0, max: 100,
+            axisLine: { show: false }, axisTick: { show: false },
+            axisLabel: { color: labelC, fontSize: 12, formatter: '{value}%', fontFamily: 'Inter, sans-serif' },
+            splitLine: { lineStyle: { color: gridC, type: 'dashed' } }
+          },
+          series: [
+            makeSeries('Avg Course Progress %',    data.values1, '#3b82f6', '#3b82f6', '#1e3a8a', '#60a5fa'),
+            makeSeries('Avg Platform Progress %',  data.values2, '#f87171', '#f87171', '#7f1d1d', '#f87171'),
+            makeSeries('Overall Score %',           data.values3, '#4ade80', '#4ade80', '#14532d', '#4ade80'),
+          ]
+        };
+      }
+
+      let currentTimeMode = 'all';
+
+      function initMotivationChart(mode) {
+        const el = document.getElementById('motivation-chart');
+        if (!el || typeof echarts === 'undefined') return;
+        if (window._motivationChart) { window._motivationChart.dispose(); }
+
+        const isLight = document.body.classList.contains('light-mode');
+        const chart = echarts.init(el, null, { renderer: 'canvas' });
+        window._motivationChart = chart;
+
+        chart.setOption(buildChartOption(mode, isLight));
+
+        // ─── Click → Real Department Stats Panel ──────────────────────────────
+        chart.on('click', (params) => {
+          if (params.componentType !== 'series') return;
+
+          const deptName = params.name;  // real department name from deptStats
+
+          // Look up the real dept record from the DB-backed deptStats array
+          const dept = deptStats.find(d => d.name === deptName);
+
+          // Look up real employees in this department from the DB-backed employees array
+          const deptEmployees = employees.filter(e => e.department === deptName);
+
+          const modal  = document.getElementById('modal-activity-details');
+          const dateEl = document.getElementById('activity-modal-date');
+          const listEl = document.getElementById('activity-list-container');
+
+          dateEl.textContent = deptName;
+
+          if (!dept) {
+            listEl.innerHTML = `<div style="color:var(--text-muted);text-align:center;padding:20px">No data found for this department.</div>`;
+          } else {
+            // ── Real metrics row ──
+            const metricsHtml = `
+              <div class="activity-item" style="background:rgba(59,130,246,0.08);border-color:rgba(59,130,246,0.25);">
+                <div class="act-icon course"><i data-lucide="users" style="width:20px;height:20px;"></i></div>
+                <div class="act-content">
+                  <div class="act-title">Total Employees in Department</div>
+                  <div class="act-time" style="font-size:1.1rem;font-weight:800;color:var(--blue-accent)">${dept.employeeCount}</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="act-icon course"><i data-lucide="book-open" style="width:20px;height:20px;"></i></div>
+                <div class="act-content">
+                  <div class="act-title">Avg Course Progress</div>
+                  <div class="act-time" style="font-size:1.1rem;font-weight:800;color:#60a5fa">${dept.courseProgress.toFixed(1)}%</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="act-icon login"><i data-lucide="gamepad-2" style="width:20px;height:20px;"></i></div>
+                <div class="act-content">
+                  <div class="act-title">Avg Platform Progress</div>
+                  <div class="act-time" style="font-size:1.1rem;font-weight:800;color:#4ade80">${dept.gameProgress.toFixed(1)}%</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="act-icon incident"><i data-lucide="bar-chart-2" style="width:20px;height:20px;"></i></div>
+                <div class="act-content">
+                  <div class="act-title">Overall Score</div>
+                  <div class="act-time" style="font-size:1.1rem;font-weight:800;color:#f87171">${dept.overallScore.toFixed(1)}%</div>
+                </div>
+              </div>`;
+
+            // ── Real employee list for this department ──
+            const empListHtml = deptEmployees.length > 0
+              ? deptEmployees.map(e => `
+                  <div class="activity-item">
+                    <div class="act-icon login"><i data-lucide="user" style="width:20px;height:20px;"></i></div>
+                    <div class="act-content">
+                      <div class="act-title">${e.name}</div>
+                      <div class="act-time">${e.jobTitle !== 'N/A' ? e.jobTitle : 'No job assigned'}</div>
+                    </div>
+                  </div>`).join('')
+              : `<div style="color:var(--text-muted);padding:12px 0;font-size:0.95rem;">No employees assigned to this department yet.</div>`;
+
+            listEl.innerHTML = metricsHtml
+              + `<div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:8px 0 4px;">Employees in Department</div>`
+              + empListHtml;
+          }
+
+          // Ripple burst on the clicked chart point
+          const burst = document.createElement('div');
+          burst.style.cssText = `position:fixed;width:24px;height:24px;border-radius:50%;
+            background:radial-gradient(circle, rgba(59,130,246,0.8), transparent);
+            pointer-events:none;z-index:9999;
+            left:${params.event.event.clientX - 12}px;
+            top:${params.event.event.clientY - 12}px;
+            transition:transform 0.5s ease,opacity 0.5s ease;`;
+          document.body.appendChild(burst);
+          requestAnimationFrame(() => { burst.style.transform = 'scale(8)'; burst.style.opacity = '0'; });
+          setTimeout(() => burst.remove(), 600);
+
+          modal.classList.add('active');
+          if (window.lucide) lucide.createIcons({ nodes: modal.querySelectorAll('[data-lucide]') });
+        });
+
+        // hover sparkle on data point
+        chart.on('mouseover', (params) => {
+          if (params.componentType === 'series') {
+            chart.dispatchAction({ type: 'highlight', seriesIndex: params.seriesIndex, dataIndex: params.dataIndex });
+          }
+        });
+        chart.on('mouseout', () => {
+          chart.dispatchAction({ type: 'downplay' });
+        });
+      }
+
+      // Metric-filter buttons (powered by real deptStats from DB)
+      document.querySelectorAll('.time-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.time-filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentTimeMode = btn.dataset.time;
+          if (window._motivationChart) {
+            const isLight = document.body.classList.contains('light-mode');
+            window._motivationChart.setOption(buildChartOption(currentTimeMode, isLight), true);
+          }
+        });
+      });
+
+      // Rebuild chart on theme change so colors update
+      const _origSetTheme = setTheme;
+      setTheme = function(theme) {
+        _origSetTheme(theme);
+        if (window._motivationChart) {
+          const isLight = theme === 'light';
+          window._motivationChart.setOption(buildChartOption(currentTimeMode, isLight), true);
+        }
+      };
 
       // Init
       populateDeptSelects();

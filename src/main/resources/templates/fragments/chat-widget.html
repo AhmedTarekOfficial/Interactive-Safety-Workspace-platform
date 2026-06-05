@@ -1,38 +1,121 @@
-<div id="ai-chat-widget">
-    <!-- Floating Button -->
-    <div id="ai-chat-button" onclick="toggleChat()">
-        <i class="fa-solid fa-robot"></i>
-        <div class="glow-effect"></div>
+<!-- ══ Autonomous AI Agent Orb ══ -->
+<div id="ai-chat-button">
+    <div class="orb-ping"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-ring-2"></div>
+    <div class="orb-core">
+        <div class="orb-face">
+            <div class="orb-eyes">
+                <div class="orb-eye"></div>
+                <div class="orb-eye"></div>
+            </div>
+            <div class="orb-mouth">
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+        </div>
     </div>
-
-    <!-- Chat Container -->
-    <div id="ai-chat-container" class="collapsed">
-        <div class="chat-header">
-            <div class="chat-title">
-                <i class="fa-solid fa-microchip"></i>
-                <span class="en">Safety AI Agent</span>
-                <span class="ar" style="display:none;">مساعد السلامة الذكي</span>
-            </div>
-            <button class="close-btn" onclick="toggleChat()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        
-        <div class="chat-body" id="chat-messages">
-            <div class="message ai-message">
-                <div class="msg-content">
-                    <span class="en">Hello! I am your Safety AI Agent. How can I help you today?</span>
-                    <span class="ar" style="display:none;">أهلاً بيك! أنا مساعد السلامة الذكي بتاعك. أقدر أساعدك إزاي النهاردة؟</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="chat-footer">
-            <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
-            <button class="send-btn" onclick="sendMessage()">
-                <i class="fa-solid fa-paper-plane"></i>
-            </button>
-        </div>
+    <div class="orb-tooltip">
+        <span class="en">Safety AI Agent</span>
+        <span class="ar" style="display:none;">مساعد السلامة الذكي</span>
     </div>
 </div>
+
+<!-- ══ HUD Chat Panel (sibling to body, NOT inside widget) ══ -->
+<div id="ai-chat-container" class="collapsed">
+
+    <!-- Animated background layers -->
+    <div class="hud-bg">
+        <canvas id="hud-canvas"></canvas>
+        <div class="hud-scanlines"></div>
+        <div class="hud-noise"></div>
+    </div>
+
+    <!-- Corner accents -->
+    <div class="hud-corner hud-tl"></div>
+    <div class="hud-corner hud-tr"></div>
+    <div class="hud-corner hud-bl"></div>
+    <div class="hud-corner hud-br"></div>
+
+    <!-- Header -->
+    <div class="hud-header">
+        <div class="hud-signal">
+            <div class="hud-signal-bars">
+                <span></span><span></span><span></span><span></span>
+            </div>
+            <span class="hud-label">SIGNAL ACTIVE</span>
+        </div>
+        <div class="hud-title">
+            <span class="hud-title-text">
+                <span class="en">SAFETY AI AGENT</span>
+                <span class="ar" style="display:none;">مساعد السلامة الذكي</span>
+            </span>
+            <span class="hud-blink">▮</span>
+        </div>
+        <div class="hud-controls">
+            <div class="hud-id">ID:7X-α</div>
+            <button class="hud-close-btn" onclick="toggleChat()">✕</button>
+        </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="hud-status-bar">
+        <span class="hud-status-item"><span class="dot green"></span>ONLINE</span>
+        <span class="hud-status-item"><span class="dot blue"></span>AI READY</span>
+        <span class="hud-status-item hud-en"><span class="dot purple"></span>SECURE</span>
+        <span class="hud-clock" id="hud-clock">00:00:00</span>
+    </div>
+
+    <!-- Messages -->
+    <div class="hud-body" id="chat-messages">
+        <div class="message ai-message">
+            <div class="hud-msg-meta">◈ AGENT · TRANSMISSION</div>
+            <div class="msg-content">
+                <span class="en">Hello! I am your Safety AI Agent. How can I help you today?</span>
+                <span class="ar" style="display:none;">أهلاً بيك! أنا مساعد السلامة الذكي بتاعك. أقدر أساعدك إزاي النهاردة؟</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input terminal -->
+    <div class="hud-footer">
+        <div class="hud-input-wrap">
+            <span class="hud-prompt">⟩</span>
+            <textarea id="chat-input"
+                   placeholder="Enter command..."
+                   onkeypress="handleKeyPress(event)" oninput="autoResize(this)" rows="1"
+                   autocomplete="off" spellcheck="false"></textarea>
+        </div>
+        <button class="hud-mic-btn" id="mic-btn" onclick="toggleVoice()" title="Voice Input">
+            <span class="hud-mic-icon">🎙</span>
+        </button>
+        <button class="hud-mic-btn" id="mic-btn" onclick="toggleVoice()" title="Voice Input">
+            <span>🎙</span>
+        </button>
+                <button class="hud-send-btn" onclick="sendMessage()">
+            <span class="hud-send-icon">⟶</span>
+        </button>
+    </div>
+
+</div>
+
+
+<!-- Voice Overlay -->
+<div id="voice-overlay" class="voice-overlay hidden">
+    <div class="voice-orb-wrap">
+        <div class="voice-orb" id="voice-orb">
+            <div class="voice-orb-ring r1"></div>
+            <div class="voice-orb-ring r2"></div>
+            <div class="voice-orb-ring r3"></div>
+        </div>
+    </div>
+    <p class="voice-transcript" id="voice-transcript">جاري الاستماع...</p>
+    <p class="voice-status"  id="voice-status">تكلم دلوقتي 🎙</p>
+    <button class="voice-close-btn" onclick="closeVoice()">✕</button>
+</div>
+
+<script th:inline="javascript">
+    window.OPENAI_API_KEY = /*[[${@environment.getProperty('openai.api.key')}]]*/ '';
+</script>
 
 <link rel="stylesheet" th:href="@{/css/chat-widget.css}">
 <script th:src="@{/js/chat-widget.js}"></script>

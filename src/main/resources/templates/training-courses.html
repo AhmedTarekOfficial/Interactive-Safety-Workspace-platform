@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -92,7 +93,7 @@
     .lang-btn:hover { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 0 15px rgba(59,130,246,0.3); }
 
     /* ── Hero ── */
-    .tc-hero { position: relative; padding: 64px 40px 48px; overflow: hidden; }
+    .tc-hero { position: relative; padding: 36px 40px 28px; overflow: hidden; }
     .tc-hero-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px); background-size: 48px 48px; animation: gridMove 25s linear infinite; }
     @keyframes gridMove { to { background-position: 48px 48px; } }
     .tc-hero-glow { position: absolute; top: -60px; right: 10%; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.12), transparent 70%); pointer-events: none; }
@@ -100,22 +101,22 @@
     .tc-tag { display: inline-flex; align-items: center; gap: 7px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); color: var(--blue); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 6px 14px; border-radius: 999px; margin-bottom: 20px; }
     .tc-tag-dot { width: 6px; height: 6px; background: var(--blue); border-radius: 50%; animation: blink 2s ease infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    .tc-hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: 72px; letter-spacing: 4px; line-height: 1; margin-bottom: 16px; }
-    [data-lang="ar"] .tc-hero h1 { letter-spacing: 0; font-size: 60px; }
+    .tc-hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 3px; line-height: 1; margin-bottom: 10px; }
+    [data-lang="ar"] .tc-hero h1 { letter-spacing: 0; font-size: 42px; }
     .tc-hero h1 em { color: var(--blue); font-style: normal; }
-    .tc-hero p { color: var(--txt2); font-size: 16px; max-width: 520px; line-height: 1.7; margin-bottom: 32px; }
-    .tc-stats { display: flex; gap: 40px; }
-    .tc-stat strong { font-family: 'JetBrains Mono', monospace; font-size: 28px; color: var(--txt); display: block; }
-    .tc-stat span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+    .tc-hero p { color: var(--txt2); font-size: 14px; max-width: 520px; line-height: 1.6; margin-bottom: 20px; }
+    .tc-stats { display: flex; gap: 28px; }
+    .tc-stat strong { font-family: 'JetBrains Mono', monospace; font-size: 22px; color: var(--txt); display: block; }
+    .tc-stat span { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
     [data-lang="ar"] .tc-stat span { letter-spacing: 0; }
-    .tc-badge { position: absolute; right: 80px; top: 50%; transform: translateY(-50%); width: 180px; height: 180px; }
-    [data-lang="ar"] .tc-badge { right: auto; left: 80px; }
-    .tc-badge-ring { width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(var(--blue) 0deg, var(--green) 120deg, var(--yellow) 240deg, var(--blue) 360deg); animation: spin 14s linear infinite; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 80px rgba(59,130,246,0.35); }
-    .tc-badge-inner { width: 140px; height: 140px; background: var(--bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 56px; }
+    .tc-badge { position: absolute; right: 60px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; }
+    [data-lang="ar"] .tc-badge { right: auto; left: 60px; }
+    .tc-badge-ring { width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(var(--blue) 0deg, var(--green) 120deg, var(--yellow) 240deg, var(--blue) 360deg); animation: spin 14s linear infinite; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 50px rgba(59,130,246,0.3); }
+    .tc-badge-inner { width: 95px; height: 95px; background: var(--bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 38px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Wrap ── */
-    .tc-wrap { max-width: 1200px; margin: 0 auto; padding: 0 40px 60px; }
+    .tc-wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px 40px; }
 
     /* ── Filter ── */
     .tc-filter { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; flex-wrap: wrap; }
@@ -135,13 +136,13 @@
     .tc-sec-line { flex: 1; height: 1px; background: var(--bdr); }
     .tc-sec-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); background: var(--surf); padding: 3px 10px; border-radius: 999px; border: 1px solid var(--bdr); }
 
-    /* ── Grid (تجهيز الـ 3D الحقيقي) ── */
+    /* ── Course Grid ── */
     .tc-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-      gap: 22px;
-      perspective: 1200px; /* دي اللي بتدي العمق */
-    }
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      perspective: 1200px;
+    } 
 
     .tc-featured-wrap { perspective: 1200px; margin-bottom: 36px; }
 
@@ -158,7 +159,7 @@
     
     .tc-featured {
       grid-column: 1 / -1;
-      display: grid; grid-template-columns: 360px 1fr;
+      display: grid; grid-template-columns: 280px 1fr;
       border-color: rgba(59,130,246,0.2);
       border-radius: 20px;
     }
@@ -178,8 +179,8 @@
     }
 
     /* Thumbnail */
-    .tc-thumb { position: relative; height: 170px; display: flex; align-items: center; justify-content: center; overflow: hidden; transform: translateZ(20px); border-radius: 18px 18px 0 0; }
-    .tc-featured .tc-thumb { height: 100%; min-height: 240px; transform: translateZ(30px); border-radius: 20px 0 0 20px; }
+    .tc-thumb { position: relative; height: 140px; display: flex; align-items: center; justify-content: center; overflow: hidden; transform: translateZ(20px); border-radius: 18px 18px 0 0; }
+    .tc-featured .tc-thumb { height: 100%; min-height: 180px; transform: translateZ(30px); border-radius: 20px 0 0 20px; }
     [data-lang="ar"] .tc-featured .tc-thumb { border-radius: 0 20px 20px 0; }
     .tc-thumb-bg { position: absolute; inset: 0; transition: transform 0.4s; }
     .tc-card:hover .tc-thumb-bg, .tc-featured:hover .tc-thumb-bg { transform: scale(1.07); }
@@ -197,13 +198,15 @@
     /* Badge */
     .tc-badge-pill { position: absolute; top: 12px; right: 12px; z-index: 3; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; transform: translateZ(30px); }
     .badge-new    { background: rgba(16,185,129,0.18); color: #10b981; border: 1px solid rgba(16,185,129,0.35); }
+    .badge-up { background: rgba(16,185,129,0.15); color: #10b981; }
+    .badge-down { background: rgba(239,68,68,0.15); color: #ef4444; }
     .badge-hot    { background: rgba(239,68,68,0.18);  color: #ef4444; border: 1px solid rgba(239,68,68,0.35); }
     .badge-core   { background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid rgba(245,158,11,0.35); }
     .badge-adv    { background: rgba(139,92,246,0.18); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.35); }
 
     /* Body */
-    .tc-body { padding: 22px; transform: translateZ(10px); }
-    .tc-featured .tc-body { padding: 36px; display: flex; flex-direction: column; justify-content: center; transform: translateZ(20px); }
+    .tc-body { padding: 16px; transform: translateZ(10px); }
+    .tc-featured .tc-body { padding: 28px; display: flex; flex-direction: column; justify-content: center; transform: translateZ(20px); }
     .tc-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .tc-cat-lbl { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--txt2); }
     .tc-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
@@ -229,6 +232,340 @@
     .tc-btn:hover { background: linear-gradient(135deg, #7c3aed, #2563eb); transform: scale(1.04); }
     .tc-btn.done  { background: var(--green); }
     .tc-btn.lock  { background: var(--bdr); color: var(--muted); cursor: not-allowed; pointer-events: none; }
+
+    /* ── 3D Motivation Chart ── */
+    .mot-wrap {
+      position: relative;
+      height: 300px;
+      margin-bottom: 28px;
+      background: linear-gradient(160deg, #0b1120 0%, #1a2535 100%);
+      border: 1.5px solid var(--bdr);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.4);
+    }
+    [data-theme="light"] .mot-wrap {
+      background: linear-gradient(160deg, #f8f8f5 0%, #e2e8f0 100%);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .mot-wrap canvas { display: block; width: 100%; height: 100%; }
+    .mot-overlay {
+      position: absolute; top: 0; left: 0; right: 0; pointer-events: none; padding: 24px 32px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .mot-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--txt); letter-spacing: 2px; }
+    .mot-title span.hl { color: var(--blue); }
+    [data-lang="ar"] .mot-title { font-family: 'Tajawal', sans-serif; font-size: 20px; letter-spacing: 0; }
+    .mot-stats { display: flex; gap: 20px; }
+    .mot-stat { background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); padding: 12px 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.05); }
+    [data-theme="light"] .mot-stat { background: rgba(255,255,255,0.6); border-color: rgba(0,0,0,0.05); }
+    .mot-stat span { font-size: 10px; color: var(--txt2); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 6px; }
+    .mot-stat strong { font-family: 'JetBrains Mono', monospace; font-size: 20px; color: var(--txt); }
+    .mot-stat strong.up { color: var(--green); }
+    .mot-glow {
+      position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 100px; background: var(--blue); filter: blur(80px); opacity: 0.2; pointer-events: none;
+    }
+    
+    #motLabels { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    .mot-label {
+      position: absolute; transform: translate(-50%, -100%);
+      text-align: center; color: #fff; transition: opacity 0.3s, transform 0.2s;
+      cursor: pointer; pointer-events: auto;
+    }
+    .mot-label-val { font-size: 16px; font-weight: 700; color: var(--green); text-shadow: 0 2px 4px rgba(0,0,0,0.8); margin-bottom: -2px; }
+    .mot-label-day { font-size: 10px; font-family: 'DM Sans', sans-serif; color: var(--txt); text-shadow: 0 1px 3px rgba(0,0,0,0.8); text-transform: uppercase; }
+    .mot-label:hover { transform: translate(-50%, -105%) scale(1.15); z-index: 10; }
+
+    .mot-details {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+      background: rgba(11, 17, 32, 0.9); backdrop-filter: blur(16px);
+      border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 20px;
+      padding: 28px; width: 360px; color: #fff; z-index: 20;
+      opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    }
+    .mot-details.active { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+    .mot-details-close {
+      position: absolute; top: 16px; right: 20px; cursor: pointer; color: var(--txt2); transition: color 0.2s; font-size: 26px; line-height: 1;
+    }
+    .mot-details-close:hover { color: #fff; }
+    .mot-details h3 { font-family: 'DM Sans', sans-serif; font-size: 20px; margin-bottom: 16px; color: var(--blue); display: flex; align-items: center; justify-content: space-between; }
+    
+    .md-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .md-metric { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+    .md-metric-val { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .md-metric-lbl { font-size: 9px; color: var(--txt2); text-transform: uppercase; letter-spacing: 1px; }
+
+    .md-desc { font-size: 12.5px; color: var(--txt2); line-height: 1.6; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .md-sub { font-size: 11px; color: var(--txt); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+
+    .mot-details-list { list-style: none; padding: 0; margin: 0; }
+    .mot-details-list li { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 8px 0; }
+    .mot-details-list li span.c-name { color: var(--txt); font-weight: 500; }
+    .mot-details-list li span.c-val { color: var(--green); font-family: 'JetBrains Mono', monospace; font-weight: 700; background: rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 6px; font-size: 11px; }
+    
+    [data-theme="light"] .mot-details { background: rgba(255,255,255,0.95); color: #000; border-color: rgba(139, 92, 246, 0.4); box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
+    [data-theme="light"] .md-metric { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.05); }
+    [data-theme="light"] .md-metric-val { color: #000; }
+    [data-theme="light"] .md-desc { border-bottom-color: rgba(0,0,0,0.1); }
+    [data-lang="ar"] .mot-details { text-align: right; }
+    [data-lang="ar"] .mot-details-close { right: auto; left: 20px; }
+
+    /* ── 3D COURSE OVERVIEW MODAL ── */
+    .co-wrap {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 9999; pointer-events: none; opacity: 0;
+      display: flex; align-items: center; justify-content: center;
+      perspective: 1500px;
+    }
+    .co-wrap.active { pointer-events: auto; }
+    .co-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(4, 9, 20, 0.85); backdrop-filter: blur(12px);
+    }
+    .co-close {
+      position: absolute; top: 30px; right: 40px; font-size: 40px; color: var(--txt2); cursor: pointer; z-index: 10;
+      transition: transform 0.3s, color 0.3s; line-height: 1;
+    }
+    .co-close:hover { transform: rotate(90deg) scale(1.2); color: #fff; }
+    [data-lang="ar"] .co-close { right: auto; left: 40px; }
+    
+    .co-scene {
+      position: relative; width: 92%; max-width: 680px; transform-style: preserve-3d;
+      max-height: 90vh; display: flex; flex-direction: column;
+    }
+    
+    .co-big-box {
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 20px;
+      padding: 28px 32px; box-shadow: 0 30px 80px rgba(0,0,0,0.8), inset 0 0 30px rgba(139, 92, 246, 0.08);
+      transform-style: preserve-3d; transform: rotateY(-10deg) rotateX(5deg);
+      max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;
+    }
+    
+    .co-title {
+      font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: #fff; letter-spacing: 2px;
+      transform: translateZ(40px); text-shadow: 0 6px 14px rgba(0,0,0,0.5); margin-bottom: 2px;
+    }
+    [data-lang="ar"] .co-title { font-family: 'Tajawal', sans-serif; font-size: 26px; letter-spacing: 0; }
+    
+    .co-subtitle {
+      color: var(--blue); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+      transform: translateZ(30px); margin-bottom: 18px; font-weight: 700; display: inline-block;
+    }
+    [data-lang="ar"] .co-subtitle { letter-spacing: 0; }
+    
+    .co-modules-wrap {
+      display: flex; flex-direction: column; gap: 10px; transform-style: preserve-3d;
+      overflow-y: auto; padding-right: 6px;
+    }
+    .co-modules-wrap::-webkit-scrollbar { width: 4px; }
+    .co-modules-wrap::-webkit-scrollbar-track { background: transparent; }
+    .co-modules-wrap::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.4); border-radius: 4px; }
+    
+    .co-module {
+      position: relative; padding: 14px 18px; border-radius: 12px; display: flex; align-items: flex-start; gap: 16px;
+      transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s;
+      flex-shrink: 0;
+    }
+    .co-module:hover { transform: translateZ(20px) scale(1.01); }
+    
+    .co-mod-num { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; opacity: 0.3; padding-top: 2px; }
+    .co-mod-body { flex: 1; min-width: 0; }
+    .co-mod-body h3 { font-family: 'DM Sans', sans-serif; font-size: 15px; margin-bottom: 6px; }
+    .co-mod-body p { font-size: 13px; line-height: 1.5; margin: 0; color: var(--txt2); }
+    
+    .co-mod-content-list {
+      margin-top: 10px; padding-left: 16px; border-left: 2px solid rgba(139, 92, 246, 0.4);
+      display: flex; flex-direction: column; gap: 7px;
+    }
+    [data-lang="ar"] .co-mod-content-list { padding-left: 0; padding-right: 16px; border-left: none; border-right: 2px solid rgba(139, 92, 246, 0.4); }
+    
+    .co-mod-item { position: relative; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .co-mod-item::before {
+      content: ''; position: absolute; top: 50%; left: -16px; width: 10px; height: 1px;
+      background: rgba(139, 92, 246, 0.4);
+    }
+    [data-lang="ar"] .co-mod-item::before { left: auto; right: -16px; }
+    
+    .co-mod-item-icon {
+      background: rgba(255,255,255,0.05); width: 22px; height: 22px; border-radius: 5px;
+      display: flex; align-items: center; justify-content: center; font-size: 11px;
+      border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0;
+    }
+    .co-mod-item-title { flex: 1; color: var(--txt2); font-size: 12px; }
+    .co-mod-item-time { color: var(--txt2); font-family: 'JetBrains Mono', monospace; font-size: 10px; white-space: nowrap; }
+
+    .co-module.active .co-mod-item-icon { background: rgba(139, 92, 246, 0.2); border-color: rgba(139, 92, 246, 0.5); color: #fff; }
+    .co-module.active .co-mod-item-title { color: #fff; }
+    .co-module.active .co-mod-content-list { border-color: var(--blue); }
+    .co-module.active .co-mod-item::before { background: var(--blue); }
+    
+    [data-theme="light"] .co-mod-item-icon { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+    [data-theme="light"] .co-module.active .co-mod-item-icon { background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.4); color: var(--blue); }
+    [data-theme="light"] .co-module.active .co-mod-item-title { color: #000; }
+    /* Active State */
+    .co-module.active {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3); color: #fff;
+    }
+    .co-start-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(139, 92, 246, 0.2); border: 1px solid var(--blue);
+      color: #fff; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500;
+      text-decoration: none; transition: all 0.3s; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .co-start-btn:hover { background: var(--blue); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4); transform: translateY(-2px); color: #fff; }
+    [data-theme="light"] .co-start-btn { background: var(--blue); color: #fff; }
+    .co-module.active .co-mod-num { color: var(--green); opacity: 1; text-shadow: 0 0 15px rgba(16,185,129,0.4); }
+    .co-module.active .co-mod-body p { color: rgba(255,255,255,0.85); }
+    
+    /* Locked State */
+    .co-module.locked {
+      background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.02);
+      color: var(--txt2); filter: grayscale(1); opacity: 0.6;
+    }
+    .co-module.locked:hover { transform: translateZ(10px); opacity: 0.8; }
+    .co-mod-lock { font-size: 24px; opacity: 0.4; }
+    
+    [data-lang="ar"] .co-module { text-align: right; flex-direction: row-reverse; }
+    [data-theme="light"] .co-bg { background: rgba(255,255,255,0.85); }
+    [data-theme="light"] .co-big-box { background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%); border-color: rgba(139, 92, 246, 0.3); box-shadow: 0 40px 100px rgba(0,0,0,0.15); }
+    [data-theme="light"] .co-title { color: #000; }
+    [data-theme="light"] .co-module.active { background: #fff; color: #000; border-color: rgba(0,0,0,0.08); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+    [data-theme="light"] .co-module.active .co-mod-body p { color: var(--txt); }
+    [data-theme="light"] .co-module.locked { background: rgba(0,0,0,0.04); border-color: transparent; color: var(--txt2); }
+    [data-theme="light"] .co-close { color: #000; }
+
+    /* Responsive for chart */
+    @media (max-width: 768px) {
+      .mot-wrap { height: 300px; }
+      .mot-overlay { flex-direction: column; gap: 16px; padding: 20px; }
+      .mot-stats { width: 100%; justify-content: space-between; }
+    }
+
+    /* ── 3D MODULE LEARNING VIEW ── */
+    .ml-wrap {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 10000; pointer-events: none; opacity: 0;
+      display: flex; align-items: center; justify-content: center;
+      perspective: 2000px;
+    }
+    .ml-wrap.active { pointer-events: auto; }
+    .ml-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(4, 9, 20, 0.95); backdrop-filter: blur(20px);
+    }
+    [data-theme="light"] .ml-bg { background: rgba(245, 245, 248, 0.95); }
+    .ml-close {
+      position: absolute; top: 30px; right: 40px; font-size: 40px; color: var(--txt2); cursor: pointer; z-index: 20;
+      transition: transform 0.3s, color 0.3s; line-height: 1;
+    }
+    .ml-close:hover { transform: rotate(90deg) scale(1.2); color: var(--red); }
+    [data-lang="ar"] .ml-close { right: auto; left: 40px; }
+    
+    .ml-scene {
+      position: relative; width: 95%; max-width: 1400px; height: 85vh;
+      transform-style: preserve-3d; display: flex; gap: 40px; align-items: stretch;
+    }
+    [data-lang="ar"] .ml-scene { flex-direction: row-reverse; }
+
+    /* Left: Video Player Panel */
+    .ml-player-panel {
+      flex: 1; position: relative;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 24px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6), inset 0 0 40px rgba(139, 92, 246, 0.05);
+      padding: 30px; display: flex; flex-direction: column;
+      transform-style: preserve-3d;
+    }
+    [data-theme="light"] .ml-player-panel {
+      background: rgba(255,255,255,0.8); box-shadow: 0 30px 60px rgba(0,0,0,0.1); border-color: rgba(139, 92, 246, 0.4);
+    }
+    .ml-player-wrap {
+      width: 100%; flex: 1; background: #000; border-radius: 16px; overflow: hidden; position: relative;
+      transform: translateZ(30px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .ml-video { width: 100%; height: 100%; object-fit: cover; }
+    
+    .ml-player-meta { margin-top: 24px; transform: translateZ(20px); }
+    .ml-player-title { font-family: 'DM Sans', sans-serif; font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    [data-theme="light"] .ml-player-title { color: #000; }
+    [data-lang="ar"] .ml-player-title { font-family: 'Tajawal', sans-serif; }
+    .ml-player-desc { font-size: 14px; color: var(--txt2); line-height: 1.6; }
+
+    /* Right: Content List Panel */
+    .ml-list-panel {
+      width: 380px; position: relative;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px;
+      padding: 24px; display: flex; flex-direction: column; gap: 16px;
+      transform-style: preserve-3d; overflow-y: auto;
+    }
+    [data-theme="light"] .ml-list-panel { background: rgba(255,255,255,0.6); border-color: rgba(0,0,0,0.1); }
+    
+    .ml-list-panel::-webkit-scrollbar { width: 6px; }
+    .ml-list-panel::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.4); border-radius: 6px; }
+
+    .ml-list-header { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--blue); letter-spacing: 1px; transform: translateZ(10px); }
+    [data-lang="ar"] .ml-list-header { font-family: 'Tajawal', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 0; }
+    
+    .ml-item {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
+      padding: 16px; display: flex; align-items: center; gap: 14px; cursor: pointer;
+      transform-style: preserve-3d; transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .ml-item:hover:not(.locked) { transform: translateZ(15px) scale(1.02); border-color: var(--blue); background: rgba(139, 92, 246, 0.1); }
+    .ml-item.active { border-color: var(--blue); background: rgba(139, 92, 246, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    [data-theme="light"] .ml-item { background: #fff; border-color: rgba(0,0,0,0.08); }
+    [data-theme="light"] .ml-item:hover:not(.locked), [data-theme="light"] .ml-item.active { background: rgba(139, 92, 246, 0.08); border-color: var(--blue); }
+
+    .ml-item-icon {
+      width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.05);
+      display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+    }
+    .ml-item.active .ml-item-icon { background: var(--blue); color: #fff; box-shadow: 0 0 15px rgba(139,92,246,0.5); }
+    [data-theme="light"] .ml-item-icon { background: rgba(0,0,0,0.05); }
+
+    .ml-item-info { flex: 1; }
+    .ml-item-title { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    [data-theme="light"] .ml-item-title { color: #000; }
+    .ml-item-dur { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--txt2); }
+
+    .ml-item.locked { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+    .ml-item-lock-icon { position: absolute; right: 16px; font-size: 18px; opacity: 0.5; color: var(--txt2); }
+    [data-lang="ar"] .ml-item-lock-icon { right: auto; left: 16px; }
+    [data-lang="ar"] .ml-item { flex-direction: row-reverse; text-align: right; }
+
+    /* Unlock Animation effect */
+    .unlock-flash { position: absolute; inset: 0; background: var(--green); opacity: 0; pointer-events: none; border-radius: 14px; z-index: 10; }
+
+    /* Video controls override */
+    .ml-video::-webkit-media-controls-timeline { margin: 0 10px; }
+
+    /* ── Responsive adjustments ── */
+    @media (max-width: 1024px) {
+      .tc-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .tc-main { padding: 20px 16px; }
+      .tc-hero { padding: 36px 24px; margin-bottom: 28px; }
+      .tc-hero h1 { font-size: 42px; }
+      .tc-hero p { font-size: 14px; }
+      .tc-hero-stats { gap: 20px; flex-wrap: wrap; }
+      .tc-hero-badge { display: none; }
+      .ts-section { margin-bottom: 28px; }
+      .ts-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .tc-featured { grid-template-columns: 1fr; }
+      .tc-featured .tc-thumb { min-height: 200px; }
+      .tc-filter { flex-direction: column; align-items: stretch; gap: 12px; }
+      .tc-search { margin: 0; width: 100%; }
+      .tc-search input { width: 100%; }
+      [data-lang="ar"] .tc-search { margin: 0; }
+    }
+    @media (max-width: 480px) {
+      .tc-stats { grid-template-columns: 1fr; }
+      .tc-hero-stats { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
@@ -276,6 +613,34 @@
 </section>
 
 <div class="tc-wrap">
+
+  <!-- 3D Motivation Chart -->
+  <div class="mot-wrap">
+    <canvas id="motCanvas"></canvas>
+    <div class="mot-glow"></div>
+    <div class="mot-overlay">
+      <div class="mot-title"><span class="en">LEARNING <span class="hl">TRAJECTORY</span></span><span class="ar">مسار <span class="hl">التعلم</span></span></div>
+      <div class="mot-stats">
+        <div class="mot-stat">
+          <span><span class="en">Daily Streak</span><span class="ar">سلسلة الأيام</span></span>
+          <strong class="up">12 <span style="font-size: 12px; font-family: 'DM Sans', sans-serif;"><span class="en">Days</span><span class="ar">يوم</span></span></strong>
+        </div>
+        <div class="mot-stat">
+          <span><span class="en">Motivation Index</span><span class="ar">مؤشر الدافعية</span></span>
+          <strong class="up">94%</strong>
+        </div>
+      </div>
+    </div>
+    <div id="motLabels"></div>
+    <div class="mot-details" id="motDetails">
+      <div class="mot-details-close" onclick="zoomOutChart()">×</div>
+      <h3 id="mdTitle"></h3>
+      <div class="md-metrics" id="mdMetrics"></div>
+      <div class="md-desc" id="mdDesc"></div>
+      <h4 class="md-sub"><span class="en">Impacting Factors</span><span class="ar">العوامل المؤثرة</span></h4>
+      <ul class="mot-details-list" id="mdCourses"></ul>
+    </div>
+  </div>
 
   <div class="tc-filter">
     <button class="tc-filter-btn active" onclick="filter('all',this)"><span class="en">All</span><span class="ar">الكل</span></button>
@@ -407,6 +772,129 @@
     </div>
 
   </div>
+  
+  <!-- 3D Overview Modal -->
+  <div class="co-wrap" id="coWrap">
+    <div class="co-bg" onclick="closeCourseOverview()"></div>
+    <div class="co-close" onclick="closeCourseOverview()">×</div>
+    <div class="co-scene">
+      <div class="co-big-box" id="coBigBox">
+        <h2 class="co-title" id="coTitle"></h2>
+        <div class="co-subtitle"><span class="en">Course Overview & Modules</span><span class="ar">نظرة عامة والوحدات</span></div>
+        
+        <div class="co-modules-wrap" id="coModulesWrap">
+          <div class="co-module active">
+            <div class="co-mod-num">01</div>
+            <div class="co-mod-body">
+              <h3><span class="en">Introduction & Fundamentals</span><span class="ar">مقدمة وأساسيات</span></h3>
+              <div class="co-mod-content-list">
+                <div class="co-mod-item">
+                  <div class="co-mod-item-icon">🎥</div>
+                  <div class="co-mod-item-title"><span class="en">Welcome to SafetyHub</span><span class="ar">مرحباً بك في SafetyHub</span></div>
+                  <div class="co-mod-item-time">05:20</div>
+                </div>
+                <div class="co-mod-item">
+                  <div class="co-mod-item-icon">🎥</div>
+                  <div class="co-mod-item-title"><span class="en">Core Principles</span><span class="ar">المبادئ الأساسية</span></div>
+                  <div class="co-mod-item-time">12:45</div>
+                </div>
+                <div class="co-mod-item">
+                  <div class="co-mod-item-icon">📝</div>
+                  <div class="co-mod-item-title"><span class="en">Knowledge Check 1</span><span class="ar">اختبار المعرفة 1</span></div>
+                  <div class="co-mod-item-time">5 Qs</div>
+                </div>
+              </div>
+            </div>
+            <a href="/training" class="co-start-btn"><span class="en">Begin</span><span class="ar">ابدأ</span></a>
+          </div>
+          
+          <div class="co-module active">
+            <div class="co-mod-num">02</div>
+            <div class="co-mod-body">
+              <h3><span class="en">Identification & Prevention</span><span class="ar">تحديد المخاطر والوقاية</span></h3>
+              <div class="co-mod-content-list">
+                <div class="co-mod-item">
+                  <div class="co-mod-item-icon">🎥</div>
+                  <div class="co-mod-item-title"><span class="en">Spotting Hazards</span><span class="ar">رصد المخاطر</span></div>
+                  <div class="co-mod-item-time">18:30</div>
+                </div>
+                <div class="co-mod-item">
+                  <div class="co-mod-item-icon">📄</div>
+                  <div class="co-mod-item-title"><span class="en">Risk Matrix Tool</span><span class="ar">أداة مصفوفة المخاطر</span></div>
+                  <div class="co-mod-item-time">PDF</div>
+                </div>
+              </div>
+            </div>
+            <a href="/training" class="co-start-btn"><span class="en">Begin</span><span class="ar">ابدأ</span></a>
+          </div>
+          
+          <div class="co-module locked">
+            <div class="co-mod-num">03</div>
+            <div class="co-mod-body">
+              <h3><span class="en">Emergency Protocols</span><span class="ar">بروتوكولات الطوارئ</span></h3>
+              <div class="co-mod-content-list">
+                <div class="co-mod-item">
+                  <div class="co-mod-item-icon">🎥</div>
+                  <div class="co-mod-item-title"><span class="en">Evacuation Plan</span><span class="ar">خطة الإخلاء</span></div>
+                  <div class="co-mod-item-time">15:00</div>
+                </div>
+                <div class="co-mod-item">
+                  <div class="co-mod-item-icon">🎥</div>
+                  <div class="co-mod-item-title"><span class="en">First Responders</span><span class="ar">المستجيبون الأوائل</span></div>
+                  <div class="co-mod-item-time">22:15</div>
+                </div>
+              </div>
+            </div>
+            <div class="co-mod-lock">🔒</div>
+          </div>
+          
+          <div class="co-module locked">
+            <div class="co-mod-num">04</div>
+            <div class="co-mod-body">
+              <h3><span class="en">Final Assessment</span><span class="ar">التقييم النهائي</span></h3>
+              <div class="co-mod-content-list">
+                <div class="co-mod-item">
+                  <div class="co-mod-item-icon">🏆</div>
+                  <div class="co-mod-item-title"><span class="en">Certification Exam</span><span class="ar">امتحان الشهادة</span></div>
+                  <div class="co-mod-item-time">45 Mins</div>
+                </div>
+              </div>
+            </div>
+            <div class="co-mod-lock">🔒</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D Module Learning View -->
+  <div class="ml-wrap" id="mlWrap">
+    <div class="ml-bg"></div>
+    <div class="ml-close" onclick="closeModuleLearning()">×</div>
+    <div class="ml-scene" id="mlScene">
+      
+      <!-- Left Panel: Video Player -->
+      <div class="ml-player-panel" id="mlPlayerPanel">
+        <div class="ml-player-wrap">
+          <video id="mlVideoPlayer" class="ml-video" controls controlsList="nodownload"></video>
+        </div>
+        <div class="ml-player-meta">
+          <div class="ml-player-title" id="mlVideoTitle"></div>
+          <div class="ml-player-desc" id="mlVideoDesc"></div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Module List -->
+      <div class="ml-list-panel" id="mlListPanel">
+        <div class="ml-list-header"><span class="en">Module Content</span><span class="ar">محتوى الوحدة</span></div>
+        <div class="ml-items-container" id="mlItemsContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div><script>
   // ─── CLOCK LOGIC ───
   function updateClock(){
@@ -544,6 +1032,478 @@
     });
   });
 
+  // ─── 3D MOTIVATION CHART ───
+  (function initMotivationChart() {
+    const canvas = document.getElementById('motCanvas');
+    if (!canvas) return;
+    const wrap = canvas.parentElement;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.1, 1000);
+    camera.position.set(0, 5, 20);
+
+    // Data points (7 days progress simulation)
+    const data = [15, 25, 22, 45, 58, 55, 88];
+    const points = [];
+    const spread = 22;
+    const startX = -spread / 2;
+    const stepX = spread / (data.length - 1);
+
+    for (let i = 0; i < data.length; i++) {
+      const x = startX + i * stepX;
+      const y = (data[i] / 100) * 10 - 2; 
+      points.push(new THREE.Vector3(x, y, 0));
+    }
+
+    // DOM labels for each point
+    const labelsContainer = document.getElementById('motLabels');
+    const labelElements = [];
+    const daysEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const daysAr = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
+
+    if (labelsContainer) {
+      for (let i = 0; i < data.length; i++) {
+        const el = document.createElement('div');
+        el.className = 'mot-label';
+        el.innerHTML = `
+          <div class="mot-label-val">${data[i]}%</div>
+          <div class="mot-label-day"><span class="en">${daysEn[i]}</span><span class="ar">${daysAr[i]}</span></div>
+        `;
+
+        el.onclick = () => {
+          if (isZoomed) return;
+          isZoomed = true;
+          gsap.to(camState, {
+            x: points[i].x, y: points[i].y + 1, z: points[i].z + 6,
+            tx: points[i].x, ty: points[i].y, tz: points[i].z,
+            duration: 1.2, ease: "power2.inOut"
+          });
+          showDetails(i);
+        };
+
+        labelsContainer.appendChild(el);
+        labelElements.push(el);
+      }
+    }
+
+    const dayDetails = [
+      { 
+        m: { tEn: '1h 20m', tAr: '1س 20د', v: 4, q: 1 }, 
+        descEn: 'Consistent learning habit maintained. Completing modules without pausing grants a +10% flow bonus.',
+        descAr: 'المحافظة على عادة التعلم. إكمال الوحدات بدون توقف يمنح مكافأة +10% لتدفق التعلم.',
+        courses: [{en:'Fire Safety', ar:'سلامة الحرائق', val:'+10%'}, {en:'PPE', ar:'معدات الوقاية', val:'+5%'}] 
+      },
+      { 
+        m: { tEn: '2h 00m', tAr: '2س 00د', v: 6, q: 2 }, 
+        descEn: 'High engagement detected. Passing quizzes on the first attempt significantly boosted motivation.',
+        descAr: 'تفاعل عالي. اجتياز الاختبارات من المحاولة الأولى يعزز الدافعية بشكل كبير.',
+        courses: [{en:'First Aid', ar:'الإسعافات', val:'+15%'}, {en:'Chemical', ar:'كيمياء', val:'+10%'}] 
+      },
+      { 
+        m: { tEn: '0h 45m', tAr: '0س 45د', v: 2, q: 0 }, 
+        descEn: 'Short review session. Active recall exercises keep the learning streak alive.',
+        descAr: 'جلسة مراجعة قصيرة. تمارين الاسترجاع النشط تحافظ على سلسلة التعلم.',
+        courses: [{en:'First Aid', ar:'الإسعافات', val:'+22%'}] 
+      },
+      { 
+        m: { tEn: '3h 30m', tAr: '3س 30د', v: 8, q: 3 }, 
+        descEn: 'Deep learning state achieved! Long continuous sessions generate massive motivation points.',
+        descAr: 'تم الوصول لحالة التعلم العميق! الجلسات المستمرة الطويلة تولد نقاط دافعية ضخمة.',
+        courses: [{en:'Hazard ID', ar:'تحديد المخاطر', val:'+30%'}, {en:'Evacuation', ar:'إخلاء', val:'+15%'}] 
+      },
+      { 
+        m: { tEn: '1h 30m', tAr: '1س 30د', v: 3, q: 1 }, 
+        descEn: 'Certificate earned! Achieving milestones provides a major permanent motivation boost.',
+        descAr: 'تم الحصول على شهادة! تحقيق الإنجازات يوفر دفعة دافعية كبيرة ودائمة.',
+        courses: [{en:'Fire Safety', ar:'سلامة الحرائق', val:'+58%'}] 
+      },
+      { 
+        m: { tEn: '1h 15m', tAr: '1س 15د', v: 3, q: 1 }, 
+        descEn: 'Steady progress. Reviewing older materials solidifies knowledge retention.',
+        descAr: 'تقدم مستمر. مراجعة المواد القديمة يرسخ الاحتفاظ بالمعرفة.',
+        courses: [{en:'Evacuation', ar:'إخلاء', val:'+55%'}] 
+      },
+      { 
+        m: { tEn: '4h 00m', tAr: '4س 00د', v: 12, q: 4 }, 
+        descEn: 'Incredible dedication! Completing an entire advanced course in one day maximizes score.',
+        descAr: 'تفاني مذهل! إكمال دورة متقدمة بالكامل في يوم واحد يزيد من الدافعية للحد الأقصى.',
+        courses: [{en:'Chemical', ar:'كيمياء', val:'+60%'}, {en:'First Aid', ar:'الإسعافات', val:'+28%'}] 
+      }
+    ];
+
+    const motDetails = document.getElementById('motDetails');
+    const mdTitle = document.getElementById('mdTitle');
+    const mdMetrics = document.getElementById('mdMetrics');
+    const mdDesc = document.getElementById('mdDesc');
+    const mdCourses = document.getElementById('mdCourses');
+
+    function showDetails(index) {
+      const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+      const d = dayDetails[index];
+      
+      mdTitle.innerHTML = isAr 
+        ? `${daysAr[index]} <span style="color:var(--txt2);font-size:14px;font-weight:400;background:rgba(255,255,255,0.05);padding:4px 12px;border-radius:20px;">${data[index]}% دافعية</span>` 
+        : `${daysEn[index]} <span style="color:var(--txt2);font-size:14px;font-weight:400;background:rgba(255,255,255,0.05);padding:4px 12px;border-radius:20px;">${data[index]}% Motivation</span>`;
+        
+      mdMetrics.innerHTML = `
+        <div class="md-metric">
+          <div class="md-metric-val">${isAr ? d.m.tAr : d.m.tEn}</div>
+          <div class="md-metric-lbl">${isAr ? 'الوقت' : 'Time'}</div>
+        </div>
+        <div class="md-metric">
+          <div class="md-metric-val">${d.m.v}</div>
+          <div class="md-metric-lbl">${isAr ? 'مقاطع' : 'Videos'}</div>
+        </div>
+        <div class="md-metric">
+          <div class="md-metric-val">${d.m.q}</div>
+          <div class="md-metric-lbl">${isAr ? 'اختبارات' : 'Quizzes'}</div>
+        </div>
+      `;
+      
+      mdDesc.innerHTML = isAr ? d.descAr : d.descEn;
+      
+      mdCourses.innerHTML = d.courses.map(c => `
+        <li>
+          <span class="c-name">${isAr ? c.ar : c.en}</span>
+          <span class="c-val">${c.val}</span>
+        </li>
+      `).join('');
+
+      motDetails.classList.add('active');
+      labelElements.forEach(el => el.style.opacity = '0');
+    }
+
+    window.zoomOutChart = function() {
+      motDetails.classList.remove('active');
+      const targetX = Math.sin(time * 0.5) * 4;
+      const targetY = 5 + Math.cos(time * 0.3) * 1.5;
+      gsap.to(camState, {
+        x: targetX, y: targetY, z: 20, tx: 0, ty: 1.5, tz: 0,
+        duration: 1.2, ease: "power2.inOut",
+        onComplete: () => { 
+          isZoomed = false; 
+          labelElements.forEach(el => el.style.opacity = '1');
+        }
+      });
+    };
+
+    // Spline curve for smooth line
+    const curve = new THREE.CatmullRomCurve3(points);
+    const curvePoints = curve.getPoints(100);
+    
+    // Glowing Line
+    const tubeGeo = new THREE.TubeGeometry(curve, 100, 0.12, 8, false);
+    const tubeMat = new THREE.MeshBasicMaterial({ color: 0x8b5cf6 });
+    const tube = new THREE.Mesh(tubeGeo, tubeMat);
+    scene.add(tube);
+
+    // Glowing aura line
+    const auraGeo = new THREE.TubeGeometry(curve, 100, 0.35, 8, false);
+    const auraMat = new THREE.MeshBasicMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending });
+    const aura = new THREE.Mesh(auraGeo, auraMat);
+    scene.add(aura);
+
+    // Data points spheres & pulse rings
+    const pGroup = new THREE.Group();
+    points.forEach(p => {
+      const sphGeo = new THREE.SphereGeometry(0.25, 16, 16);
+      const sphMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const sph = new THREE.Mesh(sphGeo, sphMat);
+      sph.position.copy(p);
+      pGroup.add(sph);
+
+      // Pulse ring
+      const ringGeo = new THREE.RingGeometry(0.35, 0.45, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.8, side: THREE.DoubleSide });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.position.copy(p);
+      
+      gsap.to(ring.scale, { x: 2.5, y: 2.5, duration: 1.5, repeat: -1, yoyo: true, ease: "power1.inOut" });
+      gsap.to(ring.material, { opacity: 0, duration: 1.5, repeat: -1, yoyo: true, ease: "power1.inOut" });
+      
+      pGroup.add(ring);
+    });
+    scene.add(pGroup);
+
+    // Connecting drop lines to grid
+    const dropMat = new THREE.LineBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.3 });
+    points.forEach(p => {
+      const dropGeo = new THREE.BufferGeometry().setFromPoints([p, new THREE.Vector3(p.x, -3, p.z)]);
+      const drop = new THREE.Line(dropGeo, dropMat);
+      scene.add(drop);
+    });
+
+    // Background Particle Grid (Terrain)
+    const gridGeo = new THREE.PlaneGeometry(40, 20, 40, 20);
+    const gridMat = new THREE.PointsMaterial({ color: 0x3b82f6, size: 0.05, transparent: true, opacity: 0.3 });
+    const gridPoints = new THREE.Points(gridGeo, gridMat);
+    gridPoints.rotation.x = -Math.PI / 2;
+    gridPoints.position.y = -3;
+    scene.add(gridPoints);
+
+    // Floating particles
+    const partGeo = new THREE.BufferGeometry();
+    const pCount = 150;
+    const pPos = new Float32Array(pCount * 3);
+    for(let i=0; i<pCount; i++){
+      pPos[i*3] = (Math.random() - 0.5) * 40;
+      pPos[i*3+1] = Math.random() * 10 - 2;
+      pPos[i*3+2] = (Math.random() - 0.5) * 20;
+    }
+    partGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+    const partMat = new THREE.PointsMaterial({ color: 0x10b981, size: 0.06, transparent: true, opacity: 0.6 });
+    const particles = new THREE.Points(partGeo, partMat);
+    scene.add(particles);
+
+    // Animation loop
+    let time = 0;
+    let isZoomed = false;
+    const camState = { x: 0, y: 5, z: 20, tx: 0, ty: 1.5, tz: 0 };
+    const positions = gridPoints.geometry.attributes.position.array;
+    
+    function animate() {
+      requestAnimationFrame(animate);
+      time += 0.015;
+
+      if (!isZoomed) {
+        // Camera gentle sway around the chart
+        camState.x = Math.sin(time * 0.5) * 4;
+        camState.y = 5 + Math.cos(time * 0.3) * 1.5;
+        camState.z = 20;
+        camState.tx = 0; camState.ty = 1.5; camState.tz = 0;
+      }
+
+      camera.position.set(camState.x, camState.y, camState.z);
+      camera.lookAt(camState.tx, camState.ty, camState.tz);
+
+      // Make rings look at camera
+      pGroup.children.forEach(child => {
+        if(child.geometry.type === 'RingGeometry') child.lookAt(camera.position);
+      });
+
+      // Project 3D positions to 2D screen
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i].clone();
+        p.project(camera);
+        const x = (p.x * 0.5 + 0.5) * wrap.clientWidth;
+        const y = (p.y * -0.5 + 0.5) * wrap.clientHeight;
+        
+        if (labelElements[i]) {
+          labelElements[i].style.left = `${x}px`;
+          labelElements[i].style.top = `${y - 15}px`;
+        }
+      }
+
+      // Animate grid terrain waves
+      for (let i = 0; i < positions.length; i += 3) {
+        const x = positions[i];
+        const y = positions[i + 1];
+        positions[i + 2] = Math.sin(x * 0.5 + time) * 0.6 + Math.cos(y * 0.5 + time) * 0.6;
+      }
+      gridPoints.geometry.attributes.position.needsUpdate = true;
+
+      // Animate floating particles upwards
+      const pArr = particles.geometry.attributes.position.array;
+      for (let i = 0; i < pCount; i++) {
+        pArr[i*3+1] += 0.015;
+        if (pArr[i*3+1] > 8) pArr[i*3+1] = -2;
+      }
+      particles.geometry.attributes.position.needsUpdate = true;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      if(!wrap) return;
+      camera.aspect = wrap.clientWidth / wrap.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+    });
+  })();
+
+  // ─── 3D COURSE OVERVIEW LOGIC ───
+  document.querySelectorAll('.tc-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const card = btn.closest('.tc-card, .tc-featured');
+      if(card) openCourseOverview(card.getAttribute('data-en'), card.getAttribute('data-ar'));
+    });
+  });
+
+  function openCourseOverview(titleEn, titleAr) {
+    const wrap = document.getElementById('coWrap');
+    const titleEl = document.getElementById('coTitle');
+    const bigBox = document.getElementById('coBigBox');
+    const modules = document.querySelectorAll('.co-module');
+    
+    titleEl.innerHTML = `<span class="en">${titleEn}</span><span class="ar">${titleAr}</span>`;
+    wrap.classList.add('active');
+    
+    const tl = gsap.timeline();
+    tl.to(wrap, { opacity: 1, duration: 0.4, ease: "power2.out" })
+      .fromTo(bigBox, { rotationY: 30, rotationX: -15, z: -800, opacity: 0 }, 
+                      { rotationY: -10, rotationX: 5, z: 0, opacity: 1, duration: 1.2, ease: "expo.out" }, "-=0.2")
+      .fromTo(modules, { z: -150, opacity: 0 }, 
+                       { z: 0, opacity: 1, duration: 0.8, stagger: 0.15, ease: "back.out(1.2)" }, "-=0.8");
+  }
+
+  function closeCourseOverview() {
+    const wrap = document.getElementById('coWrap');
+    const bigBox = document.getElementById('coBigBox');
+    const modules = document.querySelectorAll('.co-module');
+    
+    const tl = gsap.timeline();
+    tl.to(modules, { z: -100, opacity: 0, duration: 0.3, stagger: 0.05, ease: "power2.in" })
+      .to(bigBox, { rotationY: 20, z: -500, opacity: 0, duration: 0.5, ease: "power2.in" }, "-=0.2")
+      .to(wrap, { opacity: 0, duration: 0.4, ease: "power2.in", onComplete: () => {
+        wrap.classList.remove('active');
+      }}, "-=0.2");
+  }
+
+  // ─── MODULE LEARNING & VIDEO LOCKING LOGIC ───
+  let currentVideoIndex = 0;
+  let maxWatchedTime = 0;
+  const mlVideoPlayer = document.getElementById('mlVideoPlayer');
+  
+  const moduleData = [
+    {
+      src: "https://www.w3schools.com/html/mov_bbb.mp4",
+      titleEn: "1. Spotting Hazards", titleAr: "1. رصد المخاطر",
+      descEn: "Learn how to identify workplace hazards effectively before they cause accidents.",
+      descAr: "تعلم كيفية تحديد مخاطر مكان العمل بفعالية قبل وقوع الحوادث.",
+      duration: "00:10",
+      locked: false
+    },
+    {
+      src: "https://www.w3schools.com/html/mov_bbb.mp4",
+      titleEn: "2. Emergency Action Plan", titleAr: "2. خطة العمل في حالات الطوارئ",
+      descEn: "Steps to take when an emergency occurs and how to safely evacuate.",
+      descAr: "الخطوات الواجب اتخاذها عند وقوع حالة طوارئ وكيفية الإخلاء بأمان.",
+      duration: "00:10",
+      locked: true
+    },
+    {
+      src: "https://www.w3schools.com/html/mov_bbb.mp4",
+      titleEn: "3. PPE Usage", titleAr: "3. استخدام معدات الوقاية",
+      descEn: "The correct ways to use Personal Protective Equipment.",
+      descAr: "الطرق الصحيحة لاستخدام معدات الحماية الشخصية.",
+      duration: "00:10",
+      locked: true
+    }
+  ];
+
+  // Bind 'Begin' buttons in the Course Overview
+  document.querySelectorAll('.co-start-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModuleLearning();
+    });
+  });
+
+  function openModuleLearning() {
+    const coWrap = document.getElementById('coWrap');
+    const coBigBox = document.getElementById('coBigBox');
+    const mlWrap = document.getElementById('mlWrap');
+    const mlPlayerPanel = document.getElementById('mlPlayerPanel');
+    const mlListPanel = document.getElementById('mlListPanel');
+
+    // Hide Course Overview with 3D effect
+    gsap.to(coBigBox, { rotationY: 25, z: -800, opacity: 0, duration: 0.8, ease: "power3.in" });
+    gsap.to(coWrap, { opacity: 0, duration: 0.6, delay: 0.4, onComplete: () => coWrap.classList.remove('active') });
+
+    // Build module list
+    buildModuleList();
+    loadVideo(0);
+
+    // Show Module Learning View
+    mlWrap.classList.add('active');
+    gsap.fromTo(mlWrap, { opacity: 0 }, { opacity: 1, duration: 0.5, delay: 0.6 });
+    gsap.fromTo(mlPlayerPanel, { x: -200, rotationY: -20, opacity: 0 }, { x: 0, rotationY: 0, opacity: 1, duration: 1, ease: "expo.out", delay: 0.8 });
+    gsap.fromTo(mlListPanel, { x: 200, rotationY: 20, opacity: 0 }, { x: 0, rotationY: 0, opacity: 1, duration: 1, ease: "expo.out", delay: 0.9 });
+  }
+
+  function closeModuleLearning() {
+    const mlWrap = document.getElementById('mlWrap');
+    mlVideoPlayer.pause();
+    gsap.to(mlWrap, { opacity: 0, duration: 0.5, onComplete: () => mlWrap.classList.remove('active') });
+  }
+
+  function buildModuleList() {
+    const container = document.getElementById('mlItemsContainer');
+    container.innerHTML = '';
+    const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+
+    moduleData.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = `ml-item ${item.locked ? 'locked' : ''} ${idx === currentVideoIndex ? 'active' : ''}`;
+      div.innerHTML = `
+        <div class="unlock-flash"></div>
+        <div class="ml-item-icon">🎥</div>
+        <div class="ml-item-info">
+          <div class="ml-item-title">${isAr ? item.titleAr : item.titleEn}</div>
+          <div class="ml-item-dur">${item.duration}</div>
+        </div>
+        ${item.locked ? '<div class="ml-item-lock-icon">🔒</div>' : ''}
+      `;
+      div.onclick = () => {
+        if(!item.locked) loadVideo(idx);
+      };
+      container.appendChild(div);
+    });
+  }
+
+  function loadVideo(index) {
+    if(moduleData[index].locked) return;
+    
+    currentVideoIndex = index;
+    maxWatchedTime = 0;
+    const item = moduleData[index];
+    const isAr = document.documentElement.getAttribute('data-lang') === 'ar';
+    
+    mlVideoPlayer.src = item.src;
+    mlVideoPlayer.play().catch(e => console.log('Auto-play blocked'));
+    
+    document.getElementById('mlVideoTitle').innerHTML = isAr ? item.titleAr : item.titleEn;
+    document.getElementById('mlVideoDesc').innerHTML = isAr ? item.descAr : item.descEn;
+
+    buildModuleList();
+  }
+
+  // Video Anti-Skipping & Unlock Logic
+  if(mlVideoPlayer) {
+    mlVideoPlayer.addEventListener('timeupdate', () => {
+      if(!mlVideoPlayer.seeking) {
+        if(mlVideoPlayer.currentTime > maxWatchedTime) {
+          maxWatchedTime = mlVideoPlayer.currentTime;
+        }
+      }
+    });
+
+    mlVideoPlayer.addEventListener('seeking', () => {
+      if(mlVideoPlayer.currentTime > maxWatchedTime + 1) {
+        mlVideoPlayer.currentTime = maxWatchedTime;
+      }
+    });
+
+    mlVideoPlayer.addEventListener('ended', () => {
+      const nextIdx = currentVideoIndex + 1;
+      if(nextIdx < moduleData.length && moduleData[nextIdx].locked) {
+        moduleData[nextIdx].locked = false;
+        
+        buildModuleList();
+        const container = document.getElementById('mlItemsContainer');
+        const nextItemEl = container.children[nextIdx];
+        const flash = nextItemEl.querySelector('.unlock-flash');
+        
+        gsap.fromTo(flash, { opacity: 0.8 }, { opacity: 0, duration: 1, ease: "power2.out" });
+        gsap.fromTo(nextItemEl, { scale: 0.95 }, { scale: 1, duration: 0.5, ease: "back.out(1.5)" });
+      }
+    });
+  }
 </script>
 </body>
 </html>

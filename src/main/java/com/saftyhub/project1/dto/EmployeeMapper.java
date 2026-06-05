@@ -1,6 +1,9 @@
 package com.saftyhub.project1.dto;
 
 import com.saftyhub.project1.model.Users;
+import com.saftyhub.project1.model.UserStats;
+import com.saftyhub.project1.repository.UserStatsRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -8,17 +11,14 @@ import java.util.Collections;
 
 /**
  * Converts Users entity → EmployeeDto for the View layer.
- * Since the DB has no game/course progress columns yet,
- * we derive a deterministic "score" from the user's ID so
- * every employee gets a consistent, realistic-looking value.
+ * Pulls real progress data from UserStats.
  */
 @Component
+@RequiredArgsConstructor
 public class EmployeeMapper {
 
-    /* ── deterministic pseudo-random helpers ── */
-    private int seed(Integer id, int multiplier) {
-        return Math.abs((id == null ? 1 : id) * multiplier) % 101;
-    }
+    private final UserStatsRepository userStatsRepository;
+
 
     private String initials(String name) {
         if (name == null || name.isBlank()) return "?";
@@ -46,17 +46,21 @@ public class EmployeeMapper {
     }
 
     public EmployeeDto.Summary toSummary(Users user) {
-        Integer uid    = user.getUserId();
-        int course     = seed(uid, 37);
-        int game       = seed(uid, 53);
-        int safety     = (course + game) / 2;
-        int daysIdle   = seed(uid, 13) % 14;          // 0-13 days
-        int completed  = seed(uid, 7) % 5;            // 0-4 courses completed
-        int total      = 4 + (seed(uid, 3) % 3);      // 4-6 total
+        Integer uid = user.getUserId();
+        
+        // Fetch real stats or use default zeroes if none exist
+        UserStats stats = userStatsRepository.findById(uid).orElse(new UserStats());
+
+        int course     = stats.getCourseProgress();
+        int game       = stats.getGameProgress();
+        int safety     = stats.getSafetyScore();
+        int daysIdle   = stats.getDaysSinceActive();
+        int completed  = stats.getCompletedCourses();
+        int total      = stats.getTotalCourses();
         boolean overdue = daysIdle > 7 && course < 50;
 
         EmployeeDto.StatusEnum status;
-        if (course >= 90) status = EmployeeDto.StatusEnum.COMPLETED;
+        if (course >= 90 && game >= 90) status = EmployeeDto.StatusEnum.COMPLETED;
         else if (daysIdle >= 7) status = EmployeeDto.StatusEnum.PROCRASTINATOR;
         else status = EmployeeDto.StatusEnum.ACTIVE;
 
