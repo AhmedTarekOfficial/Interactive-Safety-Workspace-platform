@@ -296,8 +296,6 @@ Admins have full access to the entire system:
 
 ## Pages and What They Do
 
-> 📸 **Tip:** Add a screenshot next to each section to help readers visually identify each page.
-
 ### Login Page — `/`
 
 The entry point of the application. Users enter their email and password to log in. The system redirects them to the appropriate dashboard based on their role.
