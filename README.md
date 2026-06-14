@@ -321,6 +321,7 @@ The entry point of the application. Users enter their email and password to log 
 ---
 
 > 📸 *[Add a screenshot of the Login page here]*
+![Dashboard](./.screenshots/Loginpage.png)
 
 ---
 
