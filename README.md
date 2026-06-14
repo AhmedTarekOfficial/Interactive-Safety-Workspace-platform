@@ -2,23 +2,7 @@
 
 A web-based platform designed to help organizations manage workplace safety training, employee progress, safety events, and department management — all from a single, easy-to-use interface.
 
----
 
-> 📸 **Screenshots Section**
-> It is recommended to add screenshots here showing the main pages of the platform. Suggested screenshots:
-> - The Login page
-> - The Employee Dashboard
-> - The Manager Dashboard (with tabs)
-> - The Admin Panel
-> - The Events page
-> - The Profile page
->
-> To add a screenshot, upload the image to your repository and use this format:
-> ```
-> ![Dashboard](./website/screenshots/dashboard.png)
-> ```
-
----
 
 ## Table of Contents
 
@@ -318,12 +302,9 @@ Admins have full access to the entire system:
 
 The entry point of the application. Users enter their email and password to log in. The system redirects them to the appropriate dashboard based on their role.
 
----
 
-> 📸 *[Add a screenshot of the Login page here]*
 ![Dashboard](./.screenshots/Loginpage.png)
 
----
 
 ### Employee Dashboard — `/dashboard`
 
