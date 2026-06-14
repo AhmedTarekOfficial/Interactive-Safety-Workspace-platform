@@ -333,8 +333,7 @@ The main page for regular employees. Shows a summary of:
 - A list of employees with search and filter capabilities.
 
 ---
-
-> 📸 *[Add a screenshot of the Employee Dashboard here]*
+![Dashboard](./.screenshots/Employee_Dashboard.png)
 
 ---
 
@@ -374,9 +373,7 @@ A tabbed interface exclusively for managers. Tabs include:
 From this page, managers can also issue warnings to employees directly.
 
 ---
-
-> 📸 *[Add a screenshot of the Manager Dashboard here]*
-
+![Dashboard](./.screenshots/Manager-Dashboard.png)
 ---
 
 ### Admin Panel — `/admin`
@@ -392,9 +389,7 @@ The most powerful page in the system, accessible only to Admins. Contains tabs f
 - Module Videos
 
 ---
-
-> 📸 *[Add a screenshot of the Admin Panel here]*
-
+![Dashboard](./.screenshots/Admin-panel.png)
 ---
 
 ### Safety Events — `/events`
@@ -408,7 +403,7 @@ The system polls for new events in the background and shows notifications automa
 
 ---
 
-> 📸 *[Add a screenshot of the Events page here]*
+![Dashboard](./.screenshots/Events-page.png)
 
 ---
 
@@ -420,7 +415,7 @@ Allows users to update their personal information:
 
 ---
 
-> 📸 *[Add a screenshot of the Profile page here]*
+![Dashboard](./.screenshots/Profile-page.png)
 
 ---
 
